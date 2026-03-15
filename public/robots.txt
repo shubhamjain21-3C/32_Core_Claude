@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /portal/
+
+Sitemap: https://3ccore.com/sitemap.xml

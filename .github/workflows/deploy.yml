@@ -1,0 +1,58 @@
+name: CI / CD — Vercel Deploy
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-build:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          NEXT_PUBLIC_COMPANY_EMAIL: ${{ secrets.NEXT_PUBLIC_COMPANY_EMAIL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          PORTAL_ADMIN_EMAIL: ${{ secrets.PORTAL_ADMIN_EMAIL }}
+          PORTAL_ADMIN_PASSWORD: ${{ secrets.PORTAL_ADMIN_PASSWORD }}
+
+  deploy-preview:
+    name: Deploy Preview (dev)
+    needs: lint-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Vercel (Preview)
+        run: echo "Vercel auto-deploys preview from dev branch via GitHub integration"
+
+  deploy-production:
+    name: Deploy Production (main)
+    needs: lint-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Vercel (Production)
+        run: echo "Vercel auto-deploys production from main branch via GitHub integration"

@@ -1,0 +1,40 @@
+<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="coreGlow2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#ffffff"  stop-opacity="1"/>
+      <stop offset="35%"  stop-color="#aaf0ff"  stop-opacity="0.95"/>
+      <stop offset="70%"  stop-color="#00b8e6"  stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#1a6fc4"  stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ambient2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#0d2a52"  stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#050d1a"  stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="72" height="72" fill="#050d1a" rx="12"/>
+  <circle cx="36" cy="36" r="34" fill="url(#ambient2)"/>
+  <circle cx="36" cy="36" r="30" fill="none" stroke="#1a5090" stroke-width="0.7" opacity="0.55"/>
+  <!-- Circuit lines -->
+  <line x1="6" y1="36" x2="0" y2="36" stroke="#00ccff" stroke-width="0.85" opacity="0.75"/>
+  <line x1="66" y1="36" x2="72" y2="36" stroke="#00ccff" stroke-width="0.85" opacity="0.75"/>
+  <circle cx="1" cy="28" r="1.4" fill="#00ccff" opacity="0.55"/>
+  <circle cx="71" cy="28" r="1.4" fill="#00ccff" opacity="0.55"/>
+  <!-- Building -->
+  <rect x="20" y="32" width="32" height="28" rx="1" fill="none" stroke="#2a7fd4" stroke-width="2.2"/>
+  <polyline points="16,33 36,14 56,33" fill="none" stroke="#2a7fd4" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="31" y="46" width="10" height="14" rx="1" fill="none" stroke="#00ccff" stroke-width="1.4" opacity="0.7"/>
+  <rect x="23" y="36" width="7" height="6" rx="0.5" fill="none" stroke="#6ab4e8" stroke-width="1.2" opacity="0.75"/>
+  <rect x="42" y="36" width="7" height="6" rx="0.5" fill="none" stroke="#6ab4e8" stroke-width="1.2" opacity="0.75"/>
+  <circle cx="26.5" cy="39" r="1.5" fill="#00ccff" opacity="0.65" filter="url(#glow2)"/>
+  <circle cx="45.5" cy="39" r="1.5" fill="#00ccff" opacity="0.65" filter="url(#glow2)"/>
+  <!-- Core at peak -->
+  <circle cx="36" cy="14" r="9" fill="url(#coreGlow2)" opacity="0.3"/>
+  <circle cx="36" cy="14" r="4.5" fill="#071224"/>
+  <circle cx="36" cy="14" r="3" fill="#00b8e6" opacity="0.85"/>
+  <circle cx="36" cy="14" r="1.8" fill="#aaf0ff" opacity="0.95"/>
+  <circle cx="36" cy="14" r="0.9" fill="#ffffff"/>
+</svg>
