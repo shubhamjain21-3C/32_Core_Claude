@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
         const user = findUserByEmail(credentials.email)
         if (!user || user.role !== 'customer') return null
         if (user.passwordHash !== hash(credentials.password)) return null
-        return { id: user.id, name: user.name, email: user.email, role: 'customer' }
+        return { id: user.id, name: user.name, email: user.email, role: 'customer' as UserRole }
       },
     }),
 
@@ -53,16 +53,14 @@ export const authOptions: NextAuthOptions = {
         const adminEmail    = process.env.PORTAL_ADMIN_EMAIL    || 'admin@3ccore.com'
         const adminPassword = process.env.PORTAL_ADMIN_PASSWORD || ''
         if (credentials.email !== adminEmail || credentials.password !== adminPassword) return null
-        return { id: 'admin', name: '3C Core Admin', email: adminEmail, role: 'admin' }
+        return { id: 'admin', name: '3C Core Admin', email: adminEmail, role: 'admin' as UserRole }
       },
     }),
   ],
 
   session: { strategy: 'jwt' },
 
-  pages: {
-    signIn: '/portal/login',
-  },
+  pages: { signIn: '/portal/login' },
 
   callbacks: {
     async jwt({ token, user }) {

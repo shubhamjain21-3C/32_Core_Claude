@@ -13,7 +13,7 @@ export default withAuth(
       }
     }
 
-    // Customer routes — customer only (admin can't use customer portal)
+    // Customer routes — customer only
     if (pathname.startsWith('/portal/customer')) {
       if (role !== 'customer') {
         return NextResponse.redirect(new URL('/portal/login', req.url))
@@ -26,13 +26,13 @@ export default withAuth(
     callbacks: {
       authorized({ token, req }) {
         const { pathname } = req.nextUrl
-        // Public portal pages
+        // Always allow public portal pages
         if (
           pathname === '/portal/login' ||
           pathname === '/portal/register' ||
           pathname === '/portal/admin/login'
         ) return true
-        // Everything else requires a token
+        // Everything else requires a valid token
         return !!token
       },
     },
