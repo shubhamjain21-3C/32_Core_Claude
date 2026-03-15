@@ -99,10 +99,10 @@
         font-family="Montserrat, 'Arial Black', sans-serif"
         font-size="26" font-weight="700" fill="#ffffff" letter-spacing="1">3C</text>
 
-  <!-- Wordmark: " CORE" light -->
-  <text x="128" y="34"
+  <!-- Wordmark: "CORE" light — spaced from 3C -->
+  <text x="136" y="34"
         font-family="Montserrat, Arial, sans-serif"
-        font-size="26" font-weight="300" fill="#6ab4e8" letter-spacing="0.5"> CORE</text>
+        font-size="26" font-weight="300" fill="#6ab4e8" letter-spacing="0.5">CORE</text>
 
   <!-- Divider line between wordmark and tagline -->
   <line x1="96" y1="40" x2="280" y2="40" stroke="#1e3a5f" stroke-width="0.5" opacity="0.5"/>
