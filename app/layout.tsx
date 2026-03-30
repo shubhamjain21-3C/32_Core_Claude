@@ -3,6 +3,7 @@ import { Montserrat, Inter } from 'next/font/google'
 import '@/styles/globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { ChatbotToggle } from '@/components/ChatbotToggle'
 import { Toaster } from 'react-hot-toast'
 
 const montserrat = Montserrat({
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         <main className="pt-16">{children}</main>
         <Footer />
+        <ChatbotToggle />
         <Toaster
           position="bottom-right"
           toastOptions={{

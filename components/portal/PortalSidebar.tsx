@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, Building2, Wrench, LogOut, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Building2, Wrench, CreditCard, LogOut, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem { href: string; label: string; Icon: React.ElementType }
@@ -12,6 +12,7 @@ const customerNav: NavItem[] = [
   { href: '/portal/customer/dashboard',        label: 'Dashboard',    Icon: LayoutDashboard },
   { href: '/portal/customer/properties',       label: 'My Properties', Icon: Building2       },
   { href: '/portal/customer/services',         label: 'My Services',   Icon: Wrench          },
+  { href: '/portal/customer/payments',         label: 'Payments',      Icon: CreditCard      },
 ]
 
 const adminNav: NavItem[] = [
