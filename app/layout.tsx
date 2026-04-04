@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { Montserrat, Inter } from 'next/font/google'
 import '@/styles/globals.css'
-import { Navbar } from '@/components/layout/Navbar'
-import { Footer } from '@/components/layout/Footer'
-import { ChatbotToggle } from '@/components/ChatbotToggle'
+import { CookieConsentBanner } from '@/components/ui/CookieConsentBanner'
 import { Toaster } from 'react-hot-toast'
 
 const montserrat = Montserrat({
@@ -20,14 +18,14 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: '3C Core | Property Management — Connected · Consistent · Confident',
+    default: '3C Core | Property Services — Connected · Consistent · Confident',
     template: '%s | 3C Core',
   },
-  description: 'Professional property management and lettings consultancy built on trust, precision, and lasting results.',
+  description: 'Professional property services — inventory, inspections, dispute resolution, maintenance and deposit negotiation. UK-based, GDPR compliant.',
   metadataBase: new URL('https://3ccore.com'),
   openGraph: {
-    title: '3C Core — Property Management',
-    description: 'Professional property management built on trust, precision, and lasting results.',
+    title: '3C Core — Property Services',
+    description: 'One Skyline. Infinite Needs. Property Services You Can Finally Trust.',
     url: 'https://3ccore.com',
     siteName: '3C Core',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -35,8 +33,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '3C Core — Property Management',
-    description: 'Professional property management built on trust, precision, and lasting results.',
+    title: '3C Core — Property Services',
+    description: 'One Skyline. Infinite Needs. Property Services You Can Finally Trust.',
     images: ['/og-image.png'],
   },
   robots: { index: true, follow: true },
@@ -45,18 +43,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${montserrat.variable} ${inter.variable}`}>
-      <body className="bg-[#050d1a] text-[#c8dff0] font-body antialiased">
-        <Navbar />
-        <main className="pt-16">{children}</main>
-        <Footer />
-        <ChatbotToggle />
+      <body className="font-body antialiased">
+        {children}
+        <CookieConsentBanner />
         <Toaster
           position="bottom-right"
           toastOptions={{
             style: {
-              background: '#0d1f3c',
-              color: '#c8dff0',
-              border: '1px solid #1e3a5f',
+              background: '#2C1F14',
+              color: '#FFF8EE',
+              border: '1px solid rgba(212,134,10,0.4)',
             },
           }}
         />
