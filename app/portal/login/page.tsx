@@ -1,52 +1,95 @@
-import type { Metadata } from 'next'
-import Image from 'next/image'
+'use client'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { LoginForm } from '@/components/portal/LoginForm'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export const metadata: Metadata = {
-  title: 'Client Portal Login | 3C Core',
-  description: 'Sign in to your 3C Core client portal.',
+const ROLE_LABELS: Record<string, { icon: string; title: string; desc: string }> = {
+  landlord: { icon: '🏠', title: 'Landlord Login',          desc: 'Access your property dashboard & reports' },
+  tenant:   { icon: '🔑', title: 'Tenant Login',            desc: 'View your tenancy documents & inspections' },
+  manager:  { icon: '📋', title: 'Property Manager Login',  desc: 'Manage portfolios and client accounts' },
+  default:  { icon: '👤', title: 'Client Portal Login',     desc: 'Sign in to access your 3C Core account' },
+}
+
+function LoginContent() {
+  const params = useSearchParams()
+  const role = params.get('role') ?? 'default'
+  const { icon, title, desc } = ROLE_LABELS[role] ?? ROLE_LABELS.default
+
+  return (
+    <div className="w-full max-w-md">
+      {/* Card */}
+      <div
+        className="rounded-2xl p-8 shadow-xl"
+        style={{
+          background: 'rgba(255,255,255,0.82)',
+          border: '1.5px solid rgba(212,134,10,0.3)',
+        }}
+      >
+        {/* Brand */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-block mb-4">
+            <p className="font-heading font-bold text-[#2C1F14] text-2xl leading-none">3C Core</p>
+            <p className="text-[#D4860A] text-[10px] tracking-[0.15em] uppercase mt-1">
+              Connected | Consistent | Confident
+            </p>
+          </Link>
+
+          <div className="text-3xl mb-2">{icon}</div>
+          <h1 className="font-heading font-bold text-[#2C1F14] text-xl mb-1">{title}</h1>
+          <p className="text-[#8B3A2A] text-sm">{desc}</p>
+        </div>
+
+        <LoginForm provider="customer-login" />
+
+        <div className="mt-6 space-y-3 text-center text-sm">
+          <p className="text-[#8B3A2A]">
+            Don&apos;t have an account?{' '}
+            <Link href="/portal/register" className="font-semibold text-[#D4860A] hover:underline">
+              Create one free
+            </Link>
+          </p>
+          <div className="border-t pt-4" style={{ borderColor: 'rgba(212,134,10,0.2)' }}>
+            <Link href="/portal" className="text-xs text-[#8B3A2A] hover:text-[#D4860A] transition-colors">
+              ← Back to portal selection
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#050d1a] flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md">
-        <div className="bg-[#0d1f3c] border border-[#1e3a5f] rounded-2xl p-8 shadow-2xl shadow-[#050d1a]/50">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: 'linear-gradient(160deg,#FFF8EE 0%,#FDE8B0 55%,#F0A830 100%)' }}
+    >
+      {/* Header */}
+      <header
+        className="h-14 flex items-center px-6"
+        style={{ background: 'rgba(44,31,20,0.92)', borderBottom: '1px solid rgba(212,134,10,0.3)' }}
+      >
+        <Link href="/portal" className="flex items-center gap-1.5 text-[#F0A830] hover:text-white transition-colors text-sm font-medium">
+          <ArrowLeft size={15} />
+          Portal Selection
+        </Link>
+        <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-center hidden sm:block">
+          <p className="font-heading font-bold text-white text-base leading-none">3C Core</p>
+          <p className="text-[#F0A830] text-[10px] tracking-[0.15em] uppercase mt-0.5">
+            Connected | Consistent | Confident
+          </p>
+        </Link>
+      </header>
 
-          <div className="text-center mb-8">
-            <Link href="/">
-              <Image
-                src="/logo/3CCore_Logo_Compact_Header.svg"
-                alt="3C Core"
-                width={240} height={40}
-                className="h-10 w-auto mx-auto mb-6"
-              />
-            </Link>
-            <h1 className="text-xl font-bold font-heading text-white mb-1">Client Portal</h1>
-            <p className="text-[#7aaecc] text-sm">Sign in to access your property dashboard</p>
-          </div>
-
-          <LoginForm provider="customer-login" />
-
-          <div className="mt-6 text-center space-y-3">
-            <p className="text-[#7aaecc] text-sm">
-              Don&apos;t have an account?{' '}
-              <Link href="/portal/register"
-                className="text-[#6ab4e8] hover:text-[#00ccff] transition-colors font-medium">
-                Create one free
-              </Link>
-            </p>
-            <div className="border-t border-[#1e3a5f] pt-4">
-              <Link href="/portal/admin/login"
-                className="text-[#4a90c4] text-xs hover:text-[#7aaecc] transition-colors">
-                3C Core staff? Admin login →
-              </Link>
-            </div>
-          </div>
-
-        </div>
-      </div>
+      {/* Main */}
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
+        <Suspense fallback={<div className="text-[#2C1F14]">Loading…</div>}>
+          <LoginContent />
+        </Suspense>
+      </main>
     </div>
   )
 }

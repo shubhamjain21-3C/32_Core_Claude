@@ -30,7 +30,7 @@ export function ServicePageHeader() {
 
       {/* Portal Login */}
       <Link
-        href="/portal/login"
+        href="/portal"
         className="ml-auto text-sm px-3 py-1.5 border border-[#F0A830] text-[#F0A830] rounded hover:bg-[rgba(212,134,10,0.2)] transition-colors"
       >
         Login
