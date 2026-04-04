@@ -35,7 +35,7 @@ export default function HomePage() {
       />
 
       {/* Main content — scrollable on very small screens */}
-      <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 text-center overflow-y-auto py-8">
+      <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 text-center overflow-y-auto py-8 -mt-16 sm:-mt-20">
 
         {/* Brand block */}
         <motion.div
