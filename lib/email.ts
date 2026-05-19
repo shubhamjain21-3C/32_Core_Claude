@@ -14,9 +14,14 @@ interface ContactEmailData {
 export async function sendContactEmail(data: ContactEmailData) {
   const to = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'contactus@3ccore.com'
 
+  const from = process.env.RESEND_FROM_EMAIL
+    ? `3C Core <${process.env.RESEND_FROM_EMAIL}>`
+    : 'onboarding@resend.dev'
+
   return resend.emails.send({
-    from: '3C Core <contactus@3ccore.com>',
+    from,
     to,
+    replyTo: 'contactus@3ccore.com',
     subject: `New enquiry from ${data.name} — ${data.service}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#050d1a;color:#c8dff0;padding:32px;border-radius:12px;">
