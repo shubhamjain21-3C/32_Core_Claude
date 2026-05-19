@@ -21,7 +21,7 @@ export async function sendContactEmail(data: ContactEmailData) {
   return resend.emails.send({
     from,
     to,
-    replyTo: 'contactus@3ccore.com',
+    reply_to: 'contactus@3ccore.com',
     subject: `New enquiry from ${data.name} — ${data.service}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#050d1a;color:#c8dff0;padding:32px;border-radius:12px;">
