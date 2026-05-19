@@ -15,10 +15,26 @@ export function BookingForm({ serviceType }: Props) {
     const data = Object.fromEntries(new FormData(form))
 
     try {
+      const messageParts = [
+        data.property_address ? `Property: ${data.property_address}` : '',
+        data.postcode         ? `Postcode: ${data.postcode}`         : '',
+        data.preferred_date   ? `Preferred Date: ${data.preferred_date}` : '',
+        data.notes            ? `Notes: ${data.notes}`               : '',
+      ].filter(Boolean)
+
+      const payload = {
+        name:    data.name,
+        email:   data.email,
+        phone:   data.phone || '',
+        company: '',
+        service: (data.service_type as string) || serviceType,
+        message: messageParts.length ? messageParts.join('\n') : `Booking request for ${serviceType}.`,
+      }
+
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, service_interest: serviceType }),
+        body: JSON.stringify(payload),
       })
       if (res.ok) {
         setDone(true)
