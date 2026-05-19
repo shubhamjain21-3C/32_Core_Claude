@@ -18,7 +18,7 @@ git push origin main
 | Variable | Value |
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | `https://3ccore.com` |
-| `NEXT_PUBLIC_COMPANY_EMAIL` | `info@3ccore.com` |
+| `NEXT_PUBLIC_COMPANY_EMAIL` | `contactus@3ccore.com` |
 | `RESEND_API_KEY` | Your Resend key |
 | `NEXTAUTH_SECRET` | Run: `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | `https://3ccore.com` |
@@ -54,7 +54,7 @@ Wait 10–60 min for propagation. SSL auto-provisioned by Vercel ✅
 - [ ] https://3ccore.com loads correctly
 - [ ] https://www.3ccore.com redirects to apex
 - [ ] SSL padlock visible
-- [ ] Contact form sends email to info@3ccore.com
+- [ ] Contact form sends email to contactus@3ccore.com
 - [ ] Client portal login works
 - [ ] All pages load without 404
 - [ ] Mobile layout tested (375px, 768px, 1280px)

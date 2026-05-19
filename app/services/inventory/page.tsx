@@ -82,7 +82,7 @@ export default function InventoryPage() {
               {tab === 'prices' && (
                 <div className="space-y-6">
                   <Section title="Pricing">
-                    <p className="text-sm text-[#2C1F14] mb-4">Pricing will be confirmed upon booking. Contact us at <a href="mailto:c3propertiesuk@gmail.com" className="text-[#D4860A] underline">c3propertiesuk@gmail.com</a> or call <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a> for a quote.</p>
+                    <p className="text-sm text-[#2C1F14] mb-4">Pricing will be confirmed upon booking. Contact us at <a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a> or call <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a> for a quote.</p>
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr style={{ background: 'rgba(212,134,10,0.12)' }}>

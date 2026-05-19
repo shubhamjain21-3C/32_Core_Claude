@@ -89,7 +89,7 @@ function PricesPlaceholder({ service }: { service: string }) {
     <div className="space-y-4">
       <h2 className="font-heading font-semibold text-[#D4860A] text-xl">Pricing — {service}</h2>
       <p className="text-sm text-[#2C1F14]">Pricing is tailored to the size and type of property. Contact us for a personalised quote.</p>
-      <p className="text-sm"><a href="mailto:c3propertiesuk@gmail.com" className="text-[#D4860A] underline">c3propertiesuk@gmail.com</a> · <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
+      <p className="text-sm"><a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a> · <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
       <p className="text-xs text-[#8B3A2A] mt-2">Subscription plans for landlords with multiple properties — coming soon.</p>
     </div>
   )

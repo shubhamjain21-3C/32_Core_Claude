@@ -109,7 +109,7 @@ export default function CookiesPage() {
         </Section>
 
         <Section title="Cookie Enquiries">
-          <P>For any questions about our use of cookies, please contact us at <a href="mailto:c3propertiesuk@gmail.com" className="text-[#D4860A] underline">c3propertiesuk@gmail.com</a></P>
+          <P>For any questions about our use of cookies, please contact us at <a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a></P>
         </Section>
       </div>
       <ComingSoonWidget />

@@ -32,7 +32,7 @@ export default function ContactPage() {
             <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(212,134,10,0.2)' }}>
               <h2 className="font-heading font-semibold text-[#D4860A] text-lg mb-4">Contact Information</h2>
               <div className="space-y-3 text-sm text-[#2C1F14]">
-                <p>📧 <a href="mailto:c3propertiesuk@gmail.com" className="text-[#D4860A] underline">c3propertiesuk@gmail.com</a></p>
+                <p>📧 <a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a></p>
                 <p>📞 <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
                 <p>📍 60 Tottenham Court Road, London, W1T 2EW, England</p>
               </div>

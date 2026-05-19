@@ -57,7 +57,7 @@ export default function DisputeResolutionPage() {
                 <div className="space-y-4">
                   <h2 className="font-heading font-semibold text-[#D4860A] text-xl">Pricing</h2>
                   <p className="text-sm text-[#2C1F14]">Available as a one-off cost (paid by both parties) or as part of a subscription plan for landlords/tenants.</p>
-                  <p className="text-sm text-[#2C1F14]">Contact us for exact costs: <a href="mailto:c3propertiesuk@gmail.com" className="text-[#D4860A] underline">c3propertiesuk@gmail.com</a> · <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
+                  <p className="text-sm text-[#2C1F14]">Contact us for exact costs: <a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a> · <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
                   <p className="text-xs text-[#8B3A2A]">Subscription holders receive discounted rates.</p>
                 </div>
               )}

@@ -1,6 +1,6 @@
 export const SITE_NAME = '3C Core'
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://3ccore.com'
-export const COMPANY_EMAIL = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'info@3ccore.com'
+export const COMPANY_EMAIL = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'contactus@3ccore.com'
 export const COMPANY_PHONE = '+44 (0)20 0000 0000'
 export const COMPANY_ADDRESS = '3C Core Ltd, London, United Kingdom'
 

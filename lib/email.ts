@@ -12,10 +12,10 @@ interface ContactEmailData {
 }
 
 export async function sendContactEmail(data: ContactEmailData) {
-  const to = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'info@3ccore.com'
+  const to = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'contactus@3ccore.com'
 
   return resend.emails.send({
-    from: 'onboarding@resend.dev',
+    from: '3C Core <contactus@3ccore.com>',
     to,
     subject: `New enquiry from ${data.name} — ${data.service}`,
     html: `

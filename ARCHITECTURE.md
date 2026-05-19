@@ -95,6 +95,6 @@ ContactForm (client)
   → POST /api/contact
   → Zod validation
   → Resend.emails.send()
-  → info@3ccore.com
+  → contactus@3ccore.com
   → Toast feedback to user
 ```

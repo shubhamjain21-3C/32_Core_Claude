@@ -21,7 +21,7 @@ export default function PrivacyAndTermsPage() {
           <p className="font-semibold text-[#2C1F14]">3C Core Ltd.</p>
           <p className="text-[#2C1F14]">Registered in England and Wales · Companies House No: 17050206</p>
           <p className="text-[#2C1F14]">Registered Address: 60 Tottenham Court Road, London, W1T 2EW</p>
-          <p className="text-[#2C1F14]">Email: c3propertiesuk@gmail.com · Phone: 07852254792</p>
+          <p className="text-[#2C1F14]">Email: contactus@3ccore.com · Phone: 07852254792</p>
         </div>
 
         {/* Tab bar */}
@@ -67,7 +67,7 @@ function PrivacyPolicy() {
       <P>This Privacy Policy explains how we collect, use, store, share, and protect your personal data in accordance with the UK General Data Protection Regulation (UK GDPR), the Data Protection Act 2018, and all other applicable UK data protection legislation.</P>
 
       <H2>2. Data Controller Details</H2>
-      <P>Company Name: 3C Core Ltd.<br />Registered Address: 60 Tottenham Court Road, London, W1T 2EW, England<br />Email: c3propertiesuk@gmail.com<br />Phone: 07852254792<br />Companies House Number: 17050206</P>
+      <P>Company Name: 3C Core Ltd.<br />Registered Address: 60 Tottenham Court Road, London, W1T 2EW, England<br />Email: contactus@3ccore.com<br />Phone: 07852254792<br />Companies House Number: 17050206</P>
       <P>For all data protection enquiries, contact our Data Controller at the above details.</P>
 
       <H2>3. Who This Policy Applies To</H2>
@@ -215,7 +215,7 @@ function PrivacyPolicy() {
         <Li><strong>Right to Withdraw Consent</strong> — at any time for consent-based processing</Li>
         <Li><strong>Rights related to automated decision-making</strong> — not to be subject to solely automated decisions that significantly affect you</Li>
       </ul>
-      <P>To exercise any right, contact us at c3propertiesuk@gmail.com. We will respond within one calendar month. This service is free of charge, unless requests are manifestly unfounded or excessive.</P>
+      <P>To exercise any right, contact us at contactus@3ccore.com. We will respond within one calendar month. This service is free of charge, unless requests are manifestly unfounded or excessive.</P>
 
       <H2>14. Data Security</H2>
       <P>We implement appropriate technical and organisational measures to protect your personal data, including SSL/TLS encryption, password-protected systems, secure cloud storage, regular staff training, and incident response procedures. In the event of a data breach that poses a risk to your rights and freedoms, we will notify the ICO within 72 hours and affected individuals without undue delay, as required by UK GDPR Article 33.</P>
@@ -233,12 +233,12 @@ function PrivacyPolicy() {
       <P>Our website may contain links to third-party websites (e.g. Rightmove, Zoopla, government portals). We are not responsible for the privacy practices of those sites and encourage you to read their privacy policies independently.</P>
 
       <H2>19. Marketing Communications</H2>
-      <P>We will only send you marketing emails, newsletters, or property updates where you have provided explicit consent. You can unsubscribe at any time by clicking the &quot;Unsubscribe&quot; link in any marketing email or contacting us at c3propertiesuk@gmail.com. Withdrawing marketing consent does not affect your right to receive service-related communications.</P>
+      <P>We will only send you marketing emails, newsletters, or property updates where you have provided explicit consent. You can unsubscribe at any time by clicking the &quot;Unsubscribe&quot; link in any marketing email or contacting us at contactus@3ccore.com. Withdrawing marketing consent does not affect your right to receive service-related communications.</P>
 
       <H2>20. Complaints</H2>
       <P>If you are dissatisfied with how we have handled your personal data, you have the right to lodge a complaint with the Information Commissioner&apos;s Office (ICO):</P>
       <P>🌐 www.ico.org.uk · 📞 0303 123 1113 · ✉️ Information Commissioner&apos;s Office, Wycliffe House, Water Lane, Wilmslow, Cheshire, SK9 5AF</P>
-      <P>We would appreciate the opportunity to resolve your concern directly before you contact the ICO. Please reach out to us first at c3propertiesuk@gmail.com.</P>
+      <P>We would appreciate the opportunity to resolve your concern directly before you contact the ICO. Please reach out to us first at contactus@3ccore.com.</P>
 
       <H2>21. Changes to This Policy</H2>
       <P>We may update this Privacy and Cookie Policy from time to time to reflect changes in our services, legal requirements, or best practices. The &quot;Last Updated&quot; date at the top of this document will always reflect the most recent revision. Where changes are significant, we will notify affected individuals directly.</P>
@@ -255,7 +255,7 @@ function TermsOfUse() {
       <P>If you do not agree with any part of these Terms, you must stop using the Website immediately.</P>
 
       <H2>2. About Us</H2>
-      <P>Company Name: 3C Core Ltd. · Registered in England and Wales · Companies House Number: 17050206 · Registered Address: 60 Tottenham Court Road, London, England, W1T 2EW · Email: c3propertiesuk@gmail.com · Phone: 07852254792</P>
+      <P>Company Name: 3C Core Ltd. · Registered in England and Wales · Companies House Number: 17050206 · Registered Address: 60 Tottenham Court Road, London, England, W1T 2EW · Email: contactus@3ccore.com · Phone: 07852254792</P>
 
       <H2>3. Who These Terms Apply To</H2>
       <ul className="space-y-1 mb-4 ml-2">
@@ -319,7 +319,7 @@ function TermsOfUse() {
       <P>Details to be updated.</P>
 
       <H2>15. Complaints Procedure</H2>
-      <P>We take complaints seriously. If you are unhappy with our website or services, please contact us at c3propertiesuk@gmail.com · 07852254792 · 60 Tottenham Court Road, London, England, W1T 2EW. We will acknowledge your complaint within 3 business days and aim to resolve it within 8 weeks.</P>
+      <P>We take complaints seriously. If you are unhappy with our website or services, please contact us at contactus@3ccore.com · 07852254792 · 60 Tottenham Court Road, London, England, W1T 2EW. We will acknowledge your complaint within 3 business days and aim to resolve it within 8 weeks.</P>
 
       <H2>16. Availability of the Website</H2>
       <P>We aim to keep our Website available at all times but do not guarantee uninterrupted access. We reserve the right to suspend, withdraw, or restrict access to all or part of the Website at any time for operational, maintenance, or legal reasons without notice.</P>
@@ -337,7 +337,7 @@ function TermsOfUse() {
       <P>These Terms are governed by and construed in accordance with the laws of England and Wales. Any disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts of England and Wales.</P>
 
       <H2>21. Contact Us</H2>
-      <P>For any questions regarding these Terms of Use, please contact: c3propertiesuk@gmail.com · 07852254792 · 60 Tottenham Court Road, London, England, W1T 2EW</P>
+      <P>For any questions regarding these Terms of Use, please contact: contactus@3ccore.com · 07852254792 · 60 Tottenham Court Road, London, England, W1T 2EW</P>
     </div>
   )
 }

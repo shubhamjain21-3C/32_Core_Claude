@@ -40,7 +40,7 @@ export default function MaintenancePage() {
                       <li>• Interim property cleans</li>
                       <li>• Post-maintenance clean</li>
                     </ul>
-                    <p className="mt-3 text-sm text-[#8B3A2A]">Contact us for cleaning quotes: <a href="mailto:c3propertiesuk@gmail.com" className="text-[#D4860A] underline">c3propertiesuk@gmail.com</a></p>
+                    <p className="mt-3 text-sm text-[#8B3A2A]">Contact us for cleaning quotes: <a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a></p>
                     <p className="mt-2 text-xs text-[#8B3A2A] italic">Further maintenance services information coming soon.</p>
                   </Section>
                 </div>
@@ -54,7 +54,7 @@ export default function MaintenancePage() {
                 <div className="space-y-4">
                   <h2 className="font-heading font-semibold text-[#D4860A] text-xl">Pricing</h2>
                   <p className="text-sm text-[#2C1F14]">We work with certified and approved contractors for all compliance checks. Prices vary by property size, location, and service type.</p>
-                  <p className="text-sm">Contact us: <a href="mailto:c3propertiesuk@gmail.com" className="text-[#D4860A] underline">c3propertiesuk@gmail.com</a> · <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
+                  <p className="text-sm">Contact us: <a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a> · <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
                 </div>
               )}
               {tab === 'book' && (
