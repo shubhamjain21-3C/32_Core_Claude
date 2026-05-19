@@ -40,7 +40,8 @@ export function BookingForm({ serviceType }: Props) {
         setDone(true)
         form.reset()
       } else {
-        toast.error('Something went wrong. Please try again.')
+        const errData = await res.json().catch(() => ({}))
+        toast.error(errData.message || `Error ${res.status}. Please try again.`)
       }
     } catch {
       toast.error('Network error. Please try again.')
