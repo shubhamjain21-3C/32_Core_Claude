@@ -6,10 +6,10 @@ export default withAuth(
     const { pathname } = req.nextUrl
     const role = req.nextauth.token?.role
 
-    // Admin routes — admin only
-    if (pathname.startsWith('/portal/admin') && !pathname.startsWith('/portal/admin/login')) {
+    // Admin routes — admin only (exclude /portal/admin-login which starts with /portal/admin)
+    if (pathname.startsWith('/portal/admin') && pathname !== '/portal/admin-login') {
       if (role !== 'admin') {
-        return NextResponse.redirect(new URL('/portal/admin/login', req.url))
+        return NextResponse.redirect(new URL('/portal/admin-login', req.url))
       }
     }
 
@@ -31,7 +31,7 @@ export default withAuth(
           pathname === '/portal' ||
           pathname === '/portal/login' ||
           pathname === '/portal/register' ||
-          pathname === '/portal/admin/login'
+          pathname === '/portal/admin-login'
         ) return true
         // Everything else requires a valid token
         return !!token

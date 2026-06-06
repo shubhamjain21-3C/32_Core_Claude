@@ -1,8 +1,10 @@
 'use client'
+import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, LogIn, UserPlus } from 'lucide-react'
 import { Suspense } from 'react'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
 
@@ -26,22 +28,37 @@ const ROLES_LETTING = [
 
 function WhoAreYouContent() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const params = useSearchParams()
   const intent = (params.get('intent') ?? 'services') as 'services' | 'letting'
 
+  const [selectedRole, setSelectedRole] = useState<string | null>(null)
+
   const roles = intent === 'letting' ? ROLES_LETTING : ROLES_SERVICES
+
+  function getServicesUrl(role: string) {
+    return intent === 'letting'
+      ? `/services/letting-services?role=${role}`
+      : `/services?role=${role}&intent=${intent}`
+  }
 
   function handleRole(role: string) {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('3c_user_role', role)
       sessionStorage.setItem('3c_journey_intent', intent)
     }
-    if (intent === 'letting') {
-      router.push(`/services/letting-services?role=${role}`)
+    if (status === 'authenticated') {
+      router.push(getServicesUrl(role))
     } else {
-      router.push(`/services?role=${role}&intent=${intent}`)
+      setSelectedRole(role)
     }
   }
+
+  function browseAsGuest(role: string) {
+    router.push(getServicesUrl(role))
+  }
+
+  const selectedRoleLabel = roles.find(r => r.role === selectedRole)?.label ?? ''
 
   return (
     <div
@@ -57,11 +74,15 @@ function WhoAreYouContent() {
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(30,15,5,0.55)' }} />
       <div className="ai-grid-overlay" />
 
-      {/* Back button — z-20 so it sits above the -mt-8 main content div */}
+      {/* Back button */}
       <div className="relative z-20 pt-5 pl-5">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm"
+          onClick={() => selectedRole ? setSelectedRole(null) : undefined}
+        >
           <ArrowLeft size={15} />
-          Back
+          {selectedRole ? 'Change Selection' : 'Back'}
         </Link>
       </div>
 
@@ -78,54 +99,150 @@ function WhoAreYouContent() {
           </Link>
         </motion.div>
 
-        {/* Heading */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mb-2">
-          <h2 className="font-heading font-bold text-white text-2xl sm:text-3xl">And who are you?</h2>
-        </motion.div>
+        {/* ── Role selection stage ── */}
+        {!selectedRole && (
+          <>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mb-2">
+              <h2 className="font-heading font-bold text-white text-2xl sm:text-3xl">And who are you?</h2>
+            </motion.div>
 
-        {/* AI personalisation copy */}
-        <motion.p
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.35 }}
-          style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, maxWidth: 480, margin: '0 auto 28px', lineHeight: 1.6 }}
-        >
-          Our AI tailors your experience based on your role —
-          giving you only the tools and services relevant to you.
-        </motion.p>
-
-        {/* Role buttons */}
-        <div className="flex flex-col gap-3 w-full max-w-sm">
-          {roles.map(({ role, label, desc }, i) => (
-            <motion.button
-              key={role}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.45 + i * 0.1 }}
-              onClick={() => handleRole(role)}
-              className="text-left px-5 py-4 rounded-xl cursor-pointer"
-              style={{
-                background: 'rgba(255,255,255,0.10)',
-                border: '1.5px solid rgba(240,168,48,0.65)',
-                backdropFilter: 'blur(8px)',
-                transition: 'all 0.25s ease',
-              }}
-              onMouseEnter={e => {
-                const el = e.currentTarget
-                el.style.background = 'rgba(240,168,48,0.22)'
-                el.style.borderColor = '#F0A830'
-                el.style.transform = 'translateY(-2px)'
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget
-                el.style.background = 'rgba(255,255,255,0.10)'
-                el.style.borderColor = 'rgba(240,168,48,0.65)'
-                el.style.transform = 'translateY(0)'
-              }}
+            <motion.p
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.35 }}
+              style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, maxWidth: 480, margin: '0 auto 28px', lineHeight: 1.6 }}
             >
-              <p className="font-heading font-semibold text-white text-base">{label}</p>
-              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 2 }}>{desc}</p>
-            </motion.button>
-          ))}
-        </div>
+              Our AI tailors your experience based on your role —
+              giving you only the tools and services relevant to you.
+            </motion.p>
+
+            <div className="flex flex-col gap-3 w-full max-w-sm">
+              {roles.map(({ role, label, desc }, i) => (
+                <motion.button
+                  key={role}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: 0.45 + i * 0.1 }}
+                  onClick={() => handleRole(role)}
+                  className="text-left px-5 py-4 rounded-xl cursor-pointer"
+                  style={{
+                    background: 'rgba(255,255,255,0.10)',
+                    border: '1.5px solid rgba(240,168,48,0.65)',
+                    backdropFilter: 'blur(8px)',
+                    transition: 'all 0.25s ease',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget
+                    el.style.background = 'rgba(240,168,48,0.22)'
+                    el.style.borderColor = '#F0A830'
+                    el.style.transform = 'translateY(-2px)'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget
+                    el.style.background = 'rgba(255,255,255,0.10)'
+                    el.style.borderColor = 'rgba(240,168,48,0.65)'
+                    el.style.transform = 'translateY(0)'
+                  }}
+                >
+                  <p className="font-heading font-semibold text-white text-base">{label}</p>
+                  <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 2 }}>{desc}</p>
+                </motion.button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── Auth prompt stage (after role selected, not logged in) ── */}
+        {selectedRole && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-sm"
+          >
+            {/* Selected role indicator */}
+            <div className="mb-5 px-4 py-2 rounded-full inline-flex items-center gap-2 text-sm font-medium"
+              style={{ background: 'rgba(240,168,48,0.18)', border: '1px solid rgba(240,168,48,0.5)', color: '#F0A830' }}>
+              {selectedRoleLabel}
+            </div>
+
+            <h2 className="font-heading font-bold text-white text-2xl sm:text-3xl mb-2">
+              Welcome aboard
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, maxWidth: 420, margin: '0 auto 28px', lineHeight: 1.6 }}>
+              Login or create a free account to access your personalised services, reports, and property tools.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {/* Login button */}
+              <motion.button
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={() => router.push(
+                  `/portal/login?role=${selectedRole}&return=${encodeURIComponent(getServicesUrl(selectedRole))}`
+                )}
+                className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-semibold text-white text-sm"
+                style={{ background: '#D4860A', border: '1.5px solid #D4860A', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F0A830' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#D4860A' }}
+              >
+                <LogIn size={16} />
+                Login to My Account
+              </motion.button>
+
+              {/* Register button */}
+              <motion.button
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18 }}
+                onClick={() => router.push('/portal/register')}
+                className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-semibold text-sm"
+                style={{
+                  background: 'rgba(255,255,255,0.10)',
+                  border: '1.5px solid rgba(240,168,48,0.65)',
+                  backdropFilter: 'blur(8px)',
+                  color: 'white',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(240,168,48,0.22)'
+                  e.currentTarget.style.borderColor = '#F0A830'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.10)'
+                  e.currentTarget.style.borderColor = 'rgba(240,168,48,0.65)'
+                }}
+              >
+                <UserPlus size={16} />
+                Create Free Account
+              </motion.button>
+
+              {/* Guest browse */}
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.26 }}
+                onClick={() => browseAsGuest(selectedRole)}
+                className="text-xs font-medium transition-colors"
+                style={{ color: 'rgba(255,255,255,0.55)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.55)' }}
+              >
+                Continue without account →
+              </motion.button>
+            </div>
+
+            {/* Change selection */}
+            <button
+              onClick={() => setSelectedRole(null)}
+              className="mt-6 text-xs transition-colors"
+              style={{ color: 'rgba(255,255,255,0.4)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#F0A830' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)' }}
+            >
+              ← Change my selection
+            </button>
+          </motion.div>
+        )}
       </div>
 
       <ComingSoonWidget />

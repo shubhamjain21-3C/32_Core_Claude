@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.role !== 'admin') redirect('/portal/admin/login')
+  if (!session || session.user.role !== 'admin') redirect('/portal/admin-login')
 
   const customers       = getAllCustomers()
   const allProperties   = Array.from(properties.values())

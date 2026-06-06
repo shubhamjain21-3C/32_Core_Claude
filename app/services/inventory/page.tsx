@@ -855,7 +855,7 @@ export default function InventoryPage() {
         )}
 
         {tab === 'book' && (
-          <BookingForm serviceType="Check In / Check Out Inventory" />
+          <BookingForm serviceType="Inventory Management" />
         )}
       </div>
 
