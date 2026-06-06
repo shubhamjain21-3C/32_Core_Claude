@@ -61,7 +61,7 @@ export default function HomePage() {
           className="mb-7 max-w-xl"
         >
           <p className="font-heading font-bold text-white text-2xl sm:text-3xl mb-3">
-            Property Services, Powered by AI
+            AI Powered Property Services
           </p>
           <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: 15, lineHeight: 1.7, maxWidth: 600, margin: '0 auto' }}>
             3C Core uses artificial intelligence to automate property inventories, inspections,

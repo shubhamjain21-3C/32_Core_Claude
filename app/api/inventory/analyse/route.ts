@@ -27,8 +27,28 @@ Respond ONLY with valid JSON:
   "items": [{ "item_name": "", "category": "", "condition": "", "description": "", "concerns": "" }]
 }`
 
-function isImage(url: string) {
+function isImageUrl(url: string) {
   return /\.(jpg|jpeg|png|webp|heic|gif)(\?|$)/i.test(url)
+}
+
+function isImageDataUri(url: string) {
+  return /^data:image\//i.test(url)
+}
+
+type ImageSource =
+  | { type: 'url'; url: string }
+  | { type: 'base64'; media_type: string; data: string }
+
+function parseImageSource(url: string): ImageSource | null {
+  if (url.startsWith('data:')) {
+    const match = url.match(/^data:(image\/[\w+.-]+);base64,(.+)$/)
+    if (!match) return null
+    return { type: 'base64', media_type: match[1], data: match[2] }
+  }
+  if (isImageUrl(url)) {
+    return { type: 'url', url }
+  }
+  return null
 }
 
 export async function POST(req: Request) {
@@ -48,9 +68,12 @@ export async function POST(req: Request) {
     const analysisResults = []
 
     for (const room of rooms) {
-      const imageUrls = room.mediaUrls.filter(isImage)
+      const imageSources = room.mediaUrls
+        .filter(url => isImageUrl(url) || isImageDataUri(url))
+        .map(parseImageSource)
+        .filter((s): s is ImageSource => s !== null)
 
-      if (imageUrls.length === 0) {
+      if (imageSources.length === 0) {
         analysisResults.push({
           room_name: room.name,
           room_summary: 'No images provided for AI analysis.',
@@ -60,9 +83,11 @@ export async function POST(req: Request) {
         continue
       }
 
-      const imageContents = imageUrls.map(url => ({
+      const imageContents = imageSources.map(source => ({
         type: 'image' as const,
-        source: { type: 'url' as const, url },
+        source: source.type === 'base64'
+          ? { type: 'base64' as const, media_type: source.media_type as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp', data: source.data }
+          : { type: 'url' as const, url: (source as { type: 'url'; url: string }).url },
       }))
 
       const prompt = INVENTORY_PROMPT.replace(
