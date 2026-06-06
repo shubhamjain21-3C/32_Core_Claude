@@ -10,11 +10,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading, children, disabled, ...props }, ref) => {
-    const base = 'inline-flex items-center justify-center font-medium tracking-wide rounded transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ccff] disabled:opacity-50 disabled:cursor-not-allowed'
+    const base = 'inline-flex items-center justify-center font-medium tracking-wide rounded transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4860A] disabled:opacity-50 disabled:cursor-not-allowed'
     const variants = {
-      primary:   'bg-[#1a5fa8] border border-[#2a7fd4] text-white hover:bg-[#2a6db8] hover:border-[#00ccff] hover:shadow-lg hover:shadow-[#2a7fd4]/20',
-      secondary: 'border border-[#2a7fd4] text-[#7aaecc] hover:border-[#00ccff] hover:text-white hover:bg-[#1a5fa8]/20',
-      ghost:     'text-[#7aaecc] hover:text-white hover:bg-[#1e3a5f]/40',
+      primary:   'bg-[#D4860A] border border-[#D4860A] text-white hover:bg-[#F0A830] hover:border-[#F0A830] hover:shadow-lg hover:shadow-[#D4860A]/20',
+      secondary: 'border border-[rgba(212,134,10,0.4)] text-[#8B3A2A] hover:border-[#D4860A] hover:text-[#2C1F14] hover:bg-[rgba(212,134,10,0.08)]',
+      ghost:     'text-[#8B3A2A] hover:text-[#2C1F14] hover:bg-[rgba(212,134,10,0.08)]',
     }
     const sizes = {
       sm: 'text-xs px-4 py-2',

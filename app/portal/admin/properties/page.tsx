@@ -2,7 +2,6 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
 import { properties, users } from '@/lib/store'
-import { Badge } from '@/components/ui/Badge'
 import { MapPin } from 'lucide-react'
 
 export default async function AdminPropertiesPage() {
@@ -13,12 +12,13 @@ export default async function AdminPropertiesPage() {
   const totalRent     = allProperties.reduce((s, p) => s + p.monthlyRent, 0)
 
   return (
-    <div className="p-8">
+    <div className="p-6 md:p-8">
       <div className="mb-8">
-        <p className="text-[10px] tracking-[3px] text-[#4a90c4] uppercase mb-1">Admin Portal</p>
-        <h1 className="text-2xl font-bold font-heading text-white">All Properties</h1>
-        <p className="text-[#7aaecc] text-sm mt-1">
-          {allProperties.length} managed properties · Portfolio rent: <span className="text-[#6ab4e8] font-medium">£{totalRent.toLocaleString()}/mo</span>
+        <p className="text-[10px] tracking-[3px] text-[#D4860A] uppercase mb-1 font-medium">Admin Portal</p>
+        <h1 className="text-2xl font-bold font-heading text-[#2C1F14]">All Properties</h1>
+        <p className="text-[#8B3A2A] text-sm mt-1">
+          {allProperties.length} managed properties · Portfolio rent:{' '}
+          <span className="font-semibold" style={{ color: '#D4860A' }}>£{totalRent.toLocaleString()}/mo</span>
         </p>
       </div>
 
@@ -26,32 +26,49 @@ export default async function AdminPropertiesPage() {
         {allProperties.map(p => {
           const owner = users.get(p.customerId)
           return (
-            <div key={p.id} className="bg-[#0d1f3c] border border-[#1e3a5f] rounded-xl p-5 hover:border-[#2a7fd4] transition-colors">
+            <div
+              key={p.id}
+              className="rounded-xl p-5 transition-all"
+              style={{ background: 'white', border: '1px solid rgba(212,134,10,0.2)', boxShadow: '0 1px 4px rgba(44,31,20,0.06)' }}
+            >
               <div className="flex items-start justify-between mb-3">
-                <Badge variant={p.status === 'Occupied' ? 'cyan' : 'muted'}>{p.status}</Badge>
-                <Badge variant="blue">{p.type}</Badge>
+                <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium border ${
+                  p.status === 'Occupied'
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}>{p.status}</span>
+                <span
+                  className="text-[11px] px-2.5 py-1 rounded-full font-medium"
+                  style={{ background: 'rgba(212,134,10,0.1)', color: '#D4860A', border: '1px solid rgba(212,134,10,0.3)' }}
+                >{p.type}</span>
               </div>
+
               <div className="flex items-start gap-1.5 mb-1">
-                <MapPin size={12} className="text-[#4a90c4] mt-0.5 shrink-0" />
-                <p className="text-white text-sm font-medium">{p.address}</p>
+                <MapPin size={12} className="mt-0.5 shrink-0" style={{ color: '#D4860A' }} />
+                <p className="text-[#2C1F14] text-sm font-medium">{p.address}</p>
               </div>
-              <p className="text-[#4a90c4] text-xs ml-4 mb-3">{p.postcode} {p.bedrooms > 0 ? `· ${p.bedrooms} bed` : ''}</p>
-              <div className="flex items-center justify-between mb-3">
+              <p className="text-[#8B3A2A] text-xs ml-4 mb-3">{p.postcode}{p.bedrooms > 0 ? ` · ${p.bedrooms} bed` : ''}</p>
+
+              <div className="flex items-center justify-between mb-3 pt-2" style={{ borderTop: '1px solid rgba(212,134,10,0.1)' }}>
                 <div>
-                  <p className="text-[10px] text-[#4a90c4] uppercase tracking-wide">Rent</p>
-                  <p className="text-[#6ab4e8] font-bold font-heading">£{p.monthlyRent.toLocaleString()}/mo</p>
+                  <p className="text-[10px] text-[#8B3A2A] uppercase tracking-wide">Rent</p>
+                  <p className="font-bold font-heading" style={{ color: '#D4860A' }}>£{p.monthlyRent.toLocaleString()}/mo</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-[#4a90c4] uppercase tracking-wide">Services</p>
-                  <p className="text-[#c8dff0] text-sm">{p.serviceIds.length} active</p>
+                  <p className="text-[10px] text-[#8B3A2A] uppercase tracking-wide">Services</p>
+                  <p className="text-[#2C1F14] text-sm">{p.serviceIds.length} active</p>
                 </div>
               </div>
+
               {owner && (
-                <div className="border-t border-[#1e3a5f]/50 pt-3 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-[#1a5fa8]/30 flex items-center justify-center text-[#6ab4e8] text-xs font-bold">
+                <div className="pt-3 flex items-center gap-2" style={{ borderTop: '1px solid rgba(212,134,10,0.1)' }}>
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                    style={{ background: 'rgba(212,134,10,0.12)', color: '#D4860A' }}
+                  >
                     {owner.name.charAt(0)}
                   </div>
-                  <p className="text-[#7aaecc] text-xs">{owner.name}</p>
+                  <p className="text-[#8B3A2A] text-xs">{owner.name}</p>
                 </div>
               )}
             </div>
