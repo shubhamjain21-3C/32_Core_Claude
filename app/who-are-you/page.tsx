@@ -57,8 +57,8 @@ function WhoAreYouContent() {
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(30,15,5,0.55)' }} />
       <div className="ai-grid-overlay" />
 
-      {/* Back button */}
-      <div className="relative z-10 pt-5 pl-5">
+      {/* Back button — z-20 so it sits above the -mt-8 main content div */}
+      <div className="relative z-20 pt-5 pl-5">
         <Link href="/" className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
           <ArrowLeft size={15} />
           Back

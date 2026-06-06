@@ -23,7 +23,7 @@ export function CookieConsentBanner() {
   if (!visible) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-[rgba(44,31,20,0.97)] border-t border-[rgba(212,134,10,0.3)] px-4 py-4 shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-[10002] bg-[rgba(44,31,20,0.97)] border-t border-[rgba(212,134,10,0.3)] px-4 py-4 shadow-2xl">
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <p className="text-[#FDE8B0] text-sm flex-1 leading-relaxed">
           We use cookies to improve your experience.{' '}
