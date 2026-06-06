@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Test-Path \"d:\\\\3C-Core_Claude\\\\3C_Core_Website\\\\.env.local.example\")",
+      "Bash(npx tsc *)",
+      "Bash(git add *)"
+    ]
+  }
+}

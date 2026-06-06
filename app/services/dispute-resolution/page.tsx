@@ -1,5 +1,4 @@
 'use client'
-import { Bot } from 'lucide-react'
 import { ServicePageHeader } from '@/components/layout/ServicePageHeader'
 import { ServiceTabNav } from '@/components/ui/ServiceTabNav'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
@@ -13,9 +12,6 @@ export default function DisputeResolutionPage() {
       <div className="relative px-6 py-10 text-center overflow-hidden" style={{ borderBottom: '1px solid rgba(212,134,10,0.2)' }}>
         <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "url('/assets/images/homepage_3c.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-3" style={{ background: 'rgba(212,134,10,0.15)', color: '#D4860A', border: '1px solid rgba(212,134,10,0.3)' }}>
-            <Bot size={12} />AI-Assisted Service
-          </div>
           <h1 className="font-heading font-bold text-[#2C1F14] text-3xl sm:text-4xl">Dispute Resolution Services</h1>
           <p className="mt-2 text-[#8B3A2A] text-base sm:text-lg">Independent, professional mediation — reaching fair outcomes</p>
         </div>
@@ -26,13 +22,6 @@ export default function DisputeResolutionPage() {
             <>
               {tab === 'description' && (
                 <div className="space-y-8">
-                  <div className="rounded-xl p-4 flex gap-3" style={{ background: 'rgba(212,134,10,0.08)', border: '1px solid rgba(212,134,10,0.25)' }}>
-                    <Bot size={20} className="text-[#D4860A] shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-[#2C1F14] text-sm">AI Evidence Analysis — Powered by Claude</p>
-                      <p className="text-xs text-[#8B3A2A] mt-0.5">Our AI reviews submitted evidence — inventory reports, photos, correspondence — and produces a structured summary to help mediators reach fair, evidence-based outcomes faster.</p>
-                    </div>
-                  </div>
                   <Section title="About This Service">
                     <p>3C Core&apos;s dispute resolution service is provided by independent mediators partnered with our team. This is a facilitative process aimed at reaching voluntary agreement between parties. It does not constitute legal advice or legal representation. Outcomes are only binding where both parties agree in writing.</p>
                   </Section>

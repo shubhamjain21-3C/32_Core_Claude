@@ -28,6 +28,7 @@ export default withAuth(
         const { pathname } = req.nextUrl
         // Always allow public portal pages
         if (
+          pathname === '/portal' ||
           pathname === '/portal/login' ||
           pathname === '/portal/register' ||
           pathname === '/portal/admin/login'

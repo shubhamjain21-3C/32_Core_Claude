@@ -87,7 +87,7 @@ function ServicesContent() {
 
       {/* Change selection link */}
       <div className="relative z-10 pt-5 pl-5">
-        <Link href="/who-are-you" className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
+        <Link href={`/who-are-you?intent=${intent}`} className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
           <ArrowLeft size={15} />
           Change Selection
         </Link>
