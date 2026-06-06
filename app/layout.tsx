@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Montserrat, Inter } from 'next/font/google'
 import '@/styles/globals.css'
 import { CookieConsentBanner } from '@/components/ui/CookieConsentBanner'
+import { Providers } from '@/components/Providers'
 import { Toaster } from 'react-hot-toast'
 
 const montserrat = Montserrat({
@@ -44,9 +45,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${montserrat.variable} ${inter.variable}`}>
       <body className="font-body antialiased">
-        {children}
-        <CookieConsentBanner />
-        <Toaster
+        <Providers>
+          {children}
+          <CookieConsentBanner />
+          <Toaster
           position="bottom-right"
           toastOptions={{
             style: {
@@ -56,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             },
           }}
         />
+        </Providers>
       </body>
     </html>
   )

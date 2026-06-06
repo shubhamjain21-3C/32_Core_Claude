@@ -41,7 +41,7 @@ const ROLES: RoleCard[] = [
     Icon: ShieldCheck,
     title: 'Admin',
     subtitle: '3C Core staff — full system access',
-    href: '/portal/admin/login',
+    href: '/portal/admin-login',
     borderColor: '#8B3A2A',
     iconColor: '#8B3A2A',
   },

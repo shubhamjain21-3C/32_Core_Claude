@@ -5,7 +5,7 @@ import { getAllCustomers, getPropertiesByCustomer, getServicesByCustomer } from 
 
 export default async function AdminCustomersPage() {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.role !== 'admin') redirect('/portal/admin/login')
+  if (!session || session.user.role !== 'admin') redirect('/portal/admin-login')
 
   const customers = getAllCustomers()
 

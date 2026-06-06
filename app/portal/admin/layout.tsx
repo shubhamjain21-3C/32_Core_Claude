@@ -5,7 +5,7 @@ import { PortalSidebar } from '@/components/portal/PortalSidebar'
 
 export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.role !== 'admin') redirect('/portal/admin/login')
+  if (!session || session.user.role !== 'admin') redirect('/portal/admin-login')
 
   return (
     <div className="flex min-h-screen bg-[#050d1a]">

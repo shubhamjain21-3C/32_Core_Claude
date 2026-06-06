@@ -7,7 +7,7 @@ import { MapPin } from 'lucide-react'
 
 export default async function AdminPropertiesPage() {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.role !== 'admin') redirect('/portal/admin/login')
+  if (!session || session.user.role !== 'admin') redirect('/portal/admin-login')
 
   const allProperties = Array.from(properties.values())
   const totalRent     = allProperties.reduce((s, p) => s + p.monthlyRent, 0)

@@ -13,9 +13,10 @@ const inputClass = [
 
 interface LoginFormProps {
   provider: 'customer-login' | 'admin-login'
+  returnUrl?: string
 }
 
-export function LoginForm({ provider }: LoginFormProps) {
+export function LoginForm({ provider, returnUrl }: LoginFormProps) {
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [showPw,   setShowPw]   = useState(false)
@@ -23,7 +24,7 @@ export function LoginForm({ provider }: LoginFormProps) {
   const [error,    setError]    = useState('')
   const router = useRouter()
 
-  const redirect = provider === 'admin-login'
+  const defaultRedirect = provider === 'admin-login'
     ? '/portal/admin/dashboard'
     : '/portal/customer/dashboard'
 
@@ -36,7 +37,7 @@ export function LoginForm({ provider }: LoginFormProps) {
     if (res?.error) {
       setError('Invalid email or password. Please try again.')
     } else {
-      router.push(redirect)
+      router.push(returnUrl || defaultRedirect)
       router.refresh()
     }
   }

@@ -16,7 +16,7 @@ const SERVICE_MATRIX: Record<string, string[]> = {
 }
 
 const ALL_SERVICES = [
-  { id: 'inventory',   label: 'Check In / Check Out Inventory',  href: '/services/inventory' },
+  { id: 'inventory',   label: 'Inventory Management',            href: '/services/inventory' },
   { id: 'maintenance', label: 'Maintenance & Cleaning',           href: '/services/maintenance' },
   { id: 'midterm',     label: 'Midterm Property Inspection',      href: '/services/midterm-inspections' },
   { id: 'dispute',     label: 'Dispute Resolution',               href: '/services/dispute-resolution' },

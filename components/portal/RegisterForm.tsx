@@ -2,10 +2,29 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, ClipboardList, Key, GraduationCap } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-const inputCls = 'w-full bg-[rgba(255,255,255,0.08)] border border-[rgba(212,134,10,0.3)] text-white placeholder-white/30 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#F0A830] transition-colors'
-const labelCls = 'block text-[#FDE8B0]/80 text-xs mb-1.5 tracking-wide'
+const inputCls = [
+  'w-full px-4 py-2.5 rounded-lg text-sm text-[#2C1F14] placeholder-[#8B3A2A]/50',
+  'border border-[rgba(212,134,10,0.35)] bg-white/70',
+  'focus:outline-none focus:border-[#D4860A] focus:ring-1 focus:ring-[#D4860A]',
+  'transition-colors',
+].join(' ')
+
+const labelCls = 'block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase'
+
+interface PortalRoleOption {
+  id: string
+  label: string
+  Icon: LucideIcon
+}
+
+const PORTAL_ROLES: PortalRoleOption[] = [
+  { id: 'property_manager', label: 'Property Manager / Landlord', Icon: ClipboardList },
+  { id: 'tenant',           label: 'Tenant',                      Icon: Key },
+  { id: 'student',          label: 'Student',                     Icon: GraduationCap },
+]
 
 export function RegisterForm() {
   const [form, setForm] = useState({
@@ -16,6 +35,7 @@ export function RegisterForm() {
     email:      '',
     phone:      '',
     password:   '',
+    portalRole: '',
   })
   const [showPw, setShowPw]   = useState(false)
   const [loading, setLoading] = useState(false)
@@ -30,6 +50,10 @@ export function RegisterForm() {
     setError('')
     if (!form.firstName || !form.lastName) {
       setError('First name and last name are required.')
+      return
+    }
+    if (!form.portalRole) {
+      setError('Please select your account type.')
       return
     }
     setLoading(true)
@@ -68,7 +92,30 @@ export function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
+
+      {/* Role selector */}
+      <div>
+        <label className={labelCls}>I am a *</label>
+        <div className="flex flex-col gap-2">
+          {PORTAL_ROLES.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setForm(f => ({ ...f, portalRole: id }))}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-left text-sm transition-all ${
+                form.portalRole === id
+                  ? 'bg-[rgba(212,134,10,0.12)] border-[#D4860A] text-[#2C1F14] font-medium'
+                  : 'bg-white/70 border-[rgba(212,134,10,0.25)] text-[#8B3A2A] hover:border-[#D4860A]'
+              }`}
+            >
+              <Icon size={16} className={form.portalRole === id ? 'text-[#D4860A]' : 'text-[#8B3A2A]'} />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Name row */}
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -84,13 +131,12 @@ export function RegisterForm() {
       {/* Middle name + DOB */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls}>Middle Name <span className="text-white/30">(optional)</span></label>
+          <label className={labelCls}>Middle Name <span className="text-[#8B3A2A]/50 normal-case font-normal">(optional)</span></label>
           <input value={form.middleName} onChange={set('middleName')} placeholder="Middle name" className={inputCls} />
         </div>
         <div>
           <label className={labelCls}>Date of Birth *</label>
-          <input type="date" value={form.dob} onChange={set('dob')} required
-            className={`${inputCls} [color-scheme:dark]`} />
+          <input type="date" value={form.dob} onChange={set('dob')} required className={inputCls} />
         </div>
       </div>
 
@@ -102,13 +148,13 @@ export function RegisterForm() {
 
       {/* Phone */}
       <div>
-        <label className={labelCls}>Phone <span className="text-white/30">(optional)</span></label>
+        <label className={labelCls}>Phone <span className="text-[#8B3A2A]/50 normal-case font-normal">(optional)</span></label>
         <input type="tel" value={form.phone} onChange={set('phone')} placeholder="+44 (0) 000 000 0000" className={inputCls} />
       </div>
 
       {/* Password */}
       <div>
-        <label className={labelCls}>Password * <span className="text-white/30">(min 8 characters)</span></label>
+        <label className={labelCls}>Password * <span className="text-[#8B3A2A]/50 normal-case font-normal">(min 8 characters)</span></label>
         <div className="relative">
           <input
             type={showPw ? 'text' : 'password'}
@@ -122,15 +168,16 @@ export function RegisterForm() {
           <button
             type="button"
             onClick={() => setShowPw(!showPw)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F0A830]/60 hover:text-[#F0A830]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B3A2A] hover:text-[#D4860A] transition-colors"
           >
-            {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+            {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
         </div>
       </div>
 
       {error && (
-        <p className="text-red-400 text-xs text-center bg-red-400/10 border border-red-400/20 rounded-lg py-2 px-3">
+        <p className="text-[#8B3A2A] text-xs text-center py-2 px-3 rounded-lg"
+          style={{ background: 'rgba(139,58,42,0.08)', border: '1px solid rgba(139,58,42,0.25)' }}>
           {error}
         </p>
       )}
@@ -138,7 +185,8 @@ export function RegisterForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 rounded-lg bg-[#D4860A] text-white font-semibold text-sm hover:bg-[#F0A830] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        style={{ background: loading ? '#aaa' : '#D4860A' }}
       >
         {loading ? 'Creating account…' : 'Create Account'}
       </button>

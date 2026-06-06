@@ -17,6 +17,7 @@ const ROLE_LABELS: Record<string, { Icon: LucideIcon; title: string; desc: strin
 function LoginContent() {
   const params = useSearchParams()
   const role = params.get('role') ?? 'default'
+  const returnUrl = params.get('return') ?? ''
   const { Icon, title, desc } = ROLE_LABELS[role] ?? ROLE_LABELS.default
 
   return (
@@ -44,7 +45,7 @@ function LoginContent() {
           <p className="text-[#8B3A2A] text-sm">{desc}</p>
         </div>
 
-        <LoginForm provider="customer-login" />
+        <LoginForm provider="customer-login" returnUrl={returnUrl || undefined} />
 
         <div className="mt-6 space-y-3 text-center text-sm">
           <p className="text-[#8B3A2A]">

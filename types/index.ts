@@ -60,6 +60,7 @@ export interface ContactFormData {
 // ── Portal / Auth ─────────────────────────────────────────────────────────────
 
 export type UserRole = 'customer' | 'admin'
+export type PortalRole = 'property_manager' | 'tenant' | 'student'
 
 export interface PortalUser {
   id: string
@@ -67,6 +68,7 @@ export interface PortalUser {
   email: string
   passwordHash: string
   role: UserRole
+  portalRole?: PortalRole
   company?: string
   phone?: string
   createdAt: string

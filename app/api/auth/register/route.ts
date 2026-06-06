@@ -10,6 +10,7 @@ const registerSchema = z.object({
   email:      z.string().email('Invalid email address'),
   phone:      z.string().optional(),
   password:   z.string().min(8, 'Password must be at least 8 characters'),
+  portalRole: z.enum(['property_manager', 'tenant', 'student']).optional(),
 })
 
 export async function POST(request: Request) {
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
       email:        data.email,
       passwordHash: hash(data.password),
       role:         'customer',
+      portalRole:   data.portalRole,
       phone:        data.phone,
     })
 
