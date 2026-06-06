@@ -3,11 +3,13 @@ import { z } from 'zod'
 import { findUserByEmail, createUser, hash } from '@/lib/store'
 
 const registerSchema = z.object({
-  name:     z.string().min(2, 'Name must be at least 2 characters'),
-  email:    z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  company:  z.string().optional(),
-  phone:    z.string().optional(),
+  firstName:  z.string().min(1, 'First name is required'),
+  middleName: z.string().optional(),
+  lastName:   z.string().min(1, 'Last name is required'),
+  dob:        z.string().min(1, 'Date of birth is required'),
+  email:      z.string().email('Invalid email address'),
+  phone:      z.string().optional(),
+  password:   z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 export async function POST(request: Request) {
@@ -15,17 +17,17 @@ export async function POST(request: Request) {
     const body = await request.json()
     const data = registerSchema.parse(body)
 
-    // Check if email already in use
     if (findUserByEmail(data.email)) {
       return NextResponse.json({ success: false, message: 'An account with this email already exists.' }, { status: 409 })
     }
 
+    const fullName = [data.firstName, data.middleName, data.lastName].filter(Boolean).join(' ')
+
     createUser({
-      name:         data.name,
+      name:         fullName,
       email:        data.email,
       passwordHash: hash(data.password),
       role:         'customer',
-      company:      data.company,
       phone:        data.phone,
     })
 
