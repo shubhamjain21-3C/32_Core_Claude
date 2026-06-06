@@ -1,35 +1,49 @@
 'use client'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Home, Key, ClipboardList, GraduationCap, ShieldCheck } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-const ROLES = [
+interface RoleCard {
+  Icon: LucideIcon
+  title: string
+  subtitle: string
+  href: string
+  borderColor: string
+  iconColor: string
+}
+
+const ROLES: RoleCard[] = [
   {
-    icon: '🏠',
-    title: 'Landlord',
-    subtitle: 'Manage your properties, services & reports',
-    href: '/portal/login?role=landlord',
-    color: '#D4860A',
+    Icon: ClipboardList,
+    title: 'Property Manager / Landlord',
+    subtitle: 'Manage properties, inventories, compliance & tenancies',
+    href: '/portal/login?role=property_manager',
+    borderColor: '#D4860A',
+    iconColor: '#D4860A',
   },
   {
-    icon: '🔑',
+    Icon: Key,
     title: 'Tenant',
     subtitle: 'View your tenancy, inspection reports & documents',
     href: '/portal/login?role=tenant',
-    color: '#2D5016',
+    borderColor: '#2D5016',
+    iconColor: '#2D5016',
   },
   {
-    icon: '📋',
-    title: 'Property Manager',
-    subtitle: 'Oversee portfolios, compliance & client accounts',
-    href: '/portal/login?role=manager',
-    color: '#4A6FA5',
+    Icon: GraduationCap,
+    title: 'Student',
+    subtitle: 'Find accommodation & manage your student tenancy',
+    href: '/portal/login?role=student',
+    borderColor: '#4A6FA5',
+    iconColor: '#4A6FA5',
   },
   {
-    icon: '🛡️',
+    Icon: ShieldCheck,
     title: 'Admin',
     subtitle: '3C Core staff — full system access',
     href: '/portal/admin/login',
-    color: '#8B3A2A',
+    borderColor: '#8B3A2A',
+    iconColor: '#8B3A2A',
   },
 ]
 
@@ -64,36 +78,40 @@ export default function PortalSelectionPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5 w-full max-w-2xl">
-          {ROLES.map(role => (
+          {ROLES.map(({ Icon, title, subtitle, href, borderColor, iconColor }) => (
             <Link
-              key={role.title}
-              href={role.href}
+              key={title}
+              href={href}
               className="group flex flex-col items-center text-center p-7 rounded-2xl transition-all duration-200 hover:-translate-y-1"
               style={{
                 background: 'rgba(255,255,255,0.72)',
-                border: `2px solid rgba(${hexToRgb(role.color)},0.25)`,
+                border: `2px solid rgba(0,0,0,0.08)`,
                 boxShadow: '0 2px 12px rgba(44,31,20,0.08)',
               }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = role.color
-                ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 6px 24px rgba(${hexToRgb(role.color)},0.18)`
+                const el = e.currentTarget as HTMLAnchorElement
+                el.style.borderColor = borderColor
+                el.style.boxShadow = `0 6px 24px rgba(0,0,0,0.12)`
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = `rgba(${hexToRgb(role.color)},0.25)`
-                ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 2px 12px rgba(44,31,20,0.08)'
+                const el = e.currentTarget as HTMLAnchorElement
+                el.style.borderColor = 'rgba(0,0,0,0.08)'
+                el.style.boxShadow = '0 2px 12px rgba(44,31,20,0.08)'
               }}
             >
-              <span className="text-4xl mb-4">{role.icon}</span>
+              <div className="mb-4 p-3 rounded-full" style={{ background: `${borderColor}18` }}>
+                <Icon size={28} style={{ color: iconColor }} />
+              </div>
               <h2
-                className="font-heading font-bold text-xl mb-2 transition-colors"
-                style={{ color: role.color }}
+                className="font-heading font-bold text-lg mb-2"
+                style={{ color: iconColor }}
               >
-                {role.title}
+                {title}
               </h2>
-              <p className="text-sm text-[#8B3A2A] leading-relaxed">{role.subtitle}</p>
+              <p className="text-sm text-[#8B3A2A] leading-relaxed">{subtitle}</p>
               <span
-                className="mt-4 text-xs font-semibold tracking-wide uppercase transition-colors"
-                style={{ color: role.color }}
+                className="mt-4 text-xs font-semibold tracking-wide uppercase"
+                style={{ color: iconColor }}
               >
                 Sign In →
               </span>
@@ -110,11 +128,4 @@ export default function PortalSelectionPage() {
       </main>
     </div>
   )
-}
-
-function hexToRgb(hex: string) {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return `${r},${g},${b}`
 }

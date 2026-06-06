@@ -106,7 +106,7 @@ export function ComingSoonWidget() {
             </div>
             <div>
               <p className="text-white text-xs font-semibold leading-none">3C Core AI Assistant</p>
-              <p className="text-[10px] mt-0.5" style={{ color: '#F0A830' }}>Powered by Claude</p>
+              <p className="text-[10px] mt-0.5" style={{ color: '#F0A830' }}>Coming Soon</p>
             </div>
           </div>
           {expanded

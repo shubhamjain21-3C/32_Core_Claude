@@ -1,16 +1,17 @@
 'use client'
 import Link from 'next/link'
-import { ArrowLeft, Home, Key, ClipboardList, User } from 'lucide-react'
+import { ArrowLeft, Home, Key, ClipboardList, GraduationCap, User } from 'lucide-react'
 import { LoginForm } from '@/components/portal/LoginForm'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 const ROLE_LABELS: Record<string, { Icon: LucideIcon; title: string; desc: string }> = {
-  landlord: { Icon: Home,          title: 'Landlord Login',          desc: 'Access your property dashboard & reports' },
-  tenant:   { Icon: Key,           title: 'Tenant Login',            desc: 'View your tenancy documents & inspections' },
-  manager:  { Icon: ClipboardList, title: 'Property Manager Login',  desc: 'Manage portfolios and client accounts' },
-  default:  { Icon: User,          title: 'Client Portal Login',     desc: 'Sign in to access your 3C Core account' },
+  property_manager: { Icon: ClipboardList, title: 'Property Manager / Landlord Login', desc: 'Manage portfolios, properties & client accounts' },
+  landlord:         { Icon: Home,          title: 'Landlord Login',                    desc: 'Access your property dashboard & reports' },
+  tenant:           { Icon: Key,           title: 'Tenant Login',                      desc: 'View your tenancy documents & inspections' },
+  student:          { Icon: GraduationCap, title: 'Student Login',                     desc: 'Find accommodation & manage your tenancy' },
+  default:          { Icon: User,          title: 'Client Portal Login',               desc: 'Sign in to access your 3C Core account' },
 }
 
 function LoginContent() {
@@ -20,7 +21,6 @@ function LoginContent() {
 
   return (
     <div className="w-full max-w-md">
-      {/* Card */}
       <div
         className="rounded-2xl p-8 shadow-xl"
         style={{
@@ -37,7 +37,9 @@ function LoginContent() {
             </p>
           </Link>
 
-          <div className="flex justify-center mb-2"><Icon size={30} className="text-[#D4860A]" /></div>
+          <div className="flex justify-center mb-2">
+            <Icon size={30} className="text-[#D4860A]" />
+          </div>
           <h1 className="font-heading font-bold text-[#2C1F14] text-xl mb-1">{title}</h1>
           <p className="text-[#8B3A2A] text-sm">{desc}</p>
         </div>
