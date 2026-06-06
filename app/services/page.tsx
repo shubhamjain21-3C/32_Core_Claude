@@ -33,7 +33,7 @@ const ROLE_GREETINGS: Record<string, string> = {
 
 const AI_STATS = [
   { label: 'Reports Generated', value: '1,000+' },
-  { label: 'Items Analysed by AI', value: '50,000+' },
+  { label: 'Items Catalogued', value: '50,000+' },
   { label: 'Avg Report Time', value: 'Under 3 mins' },
 ]
 
@@ -85,10 +85,16 @@ function ServicesContent() {
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(30,15,5,0.52)' }} />
       <div className="ai-grid-overlay" />
 
-      {/* Change selection link */}
-      <div className="relative z-10 pt-5 pl-5">
-        <Link href={`/who-are-you?intent=${intent}`} className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
-          <ArrowLeft size={15} />
+      {/* Top nav row */}
+      <div className="relative z-10 pt-5 px-5 flex items-center justify-between">
+        <Link
+          href={`/who-are-you?intent=${intent}`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors px-3 py-1.5 rounded-lg"
+          style={{ color: '#F0A830', border: '1px solid rgba(240,168,48,0.4)', background: 'rgba(240,168,48,0.08)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(240,168,48,0.18)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(240,168,48,0.08)' }}
+        >
+          <ArrowLeft size={14} />
           Change Selection
         </Link>
       </div>
