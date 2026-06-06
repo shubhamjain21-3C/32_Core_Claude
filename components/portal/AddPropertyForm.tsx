@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { services } from '@/data/services'
 import toast from 'react-hot-toast'
 
-const inputClass = 'w-full bg-[#071224] border border-[#1e3a5f] text-[#c8dff0] placeholder-[#4a90c4]/60 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#2a7fd4] transition-colors'
+const inputClass = 'w-full bg-white border border-[rgba(212,134,10,0.3)] text-[#2C1F14] placeholder-[#8B3A2A]/40 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#D4860A] focus:ring-1 focus:ring-[#D4860A] transition-colors'
 
 export function AddPropertyForm() {
   const router = useRouter()
@@ -52,16 +52,16 @@ export function AddPropertyForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Property Address *</label>
+        <label className="block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase">Property Address *</label>
         <input value={form.address} onChange={set('address')} required placeholder="e.g. 14 Maple Avenue" className={inputClass} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Postcode *</label>
+          <label className="block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase">Postcode *</label>
           <input value={form.postcode} onChange={set('postcode')} required placeholder="e.g. SW1A 1AA" className={inputClass} />
         </div>
         <div>
-          <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Property Type</label>
+          <label className="block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase">Property Type</label>
           <select value={form.type} onChange={set('type')} className={inputClass}>
             {['Residential', 'HMO', 'Commercial', 'Student', 'Holiday Let'].map(t => <option key={t}>{t}</option>)}
           </select>
@@ -69,16 +69,16 @@ export function AddPropertyForm() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Bedrooms</label>
+          <label className="block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase">Bedrooms</label>
           <input type="number" min={0} max={20} value={form.bedrooms} onChange={set('bedrooms')} className={inputClass} />
         </div>
         <div>
-          <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Monthly Rent (£)</label>
+          <label className="block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase">Monthly Rent (£)</label>
           <input type="number" min={0} value={form.monthlyRent} onChange={set('monthlyRent')} placeholder="0" className={inputClass} />
         </div>
       </div>
       <div>
-        <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Status</label>
+        <label className="block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase">Status</label>
         <select value={form.status} onChange={set('status')} className={inputClass}>
           {['Occupied', 'Vacant', 'Under Management', 'For Letting'].map(s => <option key={s}>{s}</option>)}
         </select>
@@ -86,12 +86,12 @@ export function AddPropertyForm() {
 
       {/* Services selection */}
       <div>
-        <label className="block text-[#7aaecc] text-xs mb-3 tracking-wide">Services Required (select all that apply)</label>
+        <label className="block text-[#2C1F14] text-xs font-medium mb-3 tracking-wide uppercase">Services Required (select all that apply)</label>
         <div className="grid sm:grid-cols-2 gap-2">
           {services.map(s => (
-            <label key={s.slug} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${form.serviceIds.includes(s.slug) ? 'border-[#2a7fd4] bg-[#1a5fa8]/20' : 'border-[#1e3a5f] hover:border-[#2a7fd4]/50'}`}>
-              <input type="checkbox" checked={form.serviceIds.includes(s.slug)} onChange={() => toggleService(s.slug)} className="accent-[#2a7fd4]" />
-              <span className="text-[#c8dff0] text-sm">{s.title}</span>
+            <label key={s.slug} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${form.serviceIds.includes(s.slug) ? 'border-[#D4860A] bg-[rgba(212,134,10,0.08)]' : 'border-[rgba(212,134,10,0.2)] hover:border-[#D4860A]'}`}>
+              <input type="checkbox" checked={form.serviceIds.includes(s.slug)} onChange={() => toggleService(s.slug)} className="accent-[#D4860A]" />
+              <span className="text-[#2C1F14] text-sm">{s.title}</span>
             </label>
           ))}
         </div>

@@ -3,20 +3,27 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Building2 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { Menu, X, Building2, User } from 'lucide-react'
 import { NAV_LINKS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
 export function Navbar() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen]       = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const pathname = usePathname()
+  const pathname              = usePathname()
+  const { data: session }     = useSession()
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
+
+  const firstName = session?.user?.name?.split(' ')[0] ?? ''
+  const portalHref = session?.user?.role === 'admin'
+    ? '/portal/admin/dashboard'
+    : '/portal/customer/dashboard'
 
   return (
     <header className={cn(
@@ -32,17 +39,13 @@ export function Navbar() {
           <Image
             src="/logo/3CCore_Logo_Compact_Header.svg"
             alt="3C Core — Connected, Consistent, Confident"
-            width={280}
-            height={48}
-            priority
+            width={280} height={48} priority
             className="h-12 w-auto hidden sm:block"
           />
           <Image
             src="/logo/3CCore_Logo_Compact_Header.svg"
             alt="3C Core"
-            width={210}
-            height={36}
-            priority
+            width={210} height={36} priority
             className="h-9 w-auto sm:hidden"
           />
         </Link>
@@ -67,13 +70,25 @@ export function Navbar() {
 
         {/* CTA + hamburger */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/portal/login"
-            className="hidden sm:inline-flex items-center gap-1.5 border border-[#2a7fd4] bg-[#1a5fa8]/40 text-[#7ecfff] text-xs font-medium tracking-wide px-4 py-2 rounded transition-all duration-200 hover:border-[#00ccff] hover:bg-[#1a5fa8]/80"
-          >
-            <Building2 size={13} />
-            Client Portal
-          </Link>
+          {session ? (
+            /* Logged in — show user name + portal link */
+            <Link
+              href={portalHref}
+              className="hidden sm:inline-flex items-center gap-2 border border-[#2a7fd4] bg-[#1a5fa8]/40 text-[#7ecfff] text-xs font-medium tracking-wide px-4 py-2 rounded transition-all duration-200 hover:border-[#00ccff] hover:bg-[#1a5fa8]/80"
+            >
+              <User size={13} />
+              {firstName || 'My Portal'}
+            </Link>
+          ) : (
+            /* Not logged in — show Client Portal button */
+            <Link
+              href="/portal/login"
+              className="hidden sm:inline-flex items-center gap-1.5 border border-[#2a7fd4] bg-[#1a5fa8]/40 text-[#7ecfff] text-xs font-medium tracking-wide px-4 py-2 rounded transition-all duration-200 hover:border-[#00ccff] hover:bg-[#1a5fa8]/80"
+            >
+              <Building2 size={13} />
+              Client Portal
+            </Link>
+          )}
 
           <button
             className="md:hidden text-[#c8dff0] hover:text-white p-1"
@@ -101,14 +116,25 @@ export function Navbar() {
               {label}
             </Link>
           ))}
-          <Link
-            href="/portal/login"
-            onClick={() => setOpen(false)}
-            className="mt-4 w-full flex items-center justify-center gap-1.5 border border-[#2a7fd4] bg-[#1a5fa8]/40 text-[#7ecfff] text-xs font-medium tracking-wide px-4 py-2.5 rounded"
-          >
-            <Building2 size={13} />
-            Client Portal
-          </Link>
+          {session ? (
+            <Link
+              href={portalHref}
+              onClick={() => setOpen(false)}
+              className="mt-4 w-full flex items-center justify-center gap-1.5 border border-[#2a7fd4] bg-[#1a5fa8]/40 text-[#7ecfff] text-xs font-medium tracking-wide px-4 py-2.5 rounded"
+            >
+              <User size={13} />
+              {firstName || 'My Portal'}
+            </Link>
+          ) : (
+            <Link
+              href="/portal/login"
+              onClick={() => setOpen(false)}
+              className="mt-4 w-full flex items-center justify-center gap-1.5 border border-[#2a7fd4] bg-[#1a5fa8]/40 text-[#7ecfff] text-xs font-medium tracking-wide px-4 py-2.5 rounded"
+            >
+              <Building2 size={13} />
+              Client Portal
+            </Link>
+          )}
         </div>
       )}
     </header>

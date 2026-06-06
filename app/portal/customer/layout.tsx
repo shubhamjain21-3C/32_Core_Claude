@@ -8,7 +8,7 @@ export default async function CustomerPortalLayout({ children }: { children: Rea
   if (!session || session.user.role !== 'customer') redirect('/portal/login')
 
   return (
-    <div className="flex min-h-screen bg-[#050d1a]">
+    <div className="flex min-h-screen bg-[#FFF8EE]">
       <PortalSidebar role="customer" userName={session.user.name || session.user.email || 'Client'} />
       <main className="flex-1 overflow-auto">
         {children}

@@ -8,7 +8,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
   if (!session || session.user.role !== 'admin') redirect('/portal/admin-login')
 
   return (
-    <div className="flex min-h-screen bg-[#050d1a]">
+    <div className="flex min-h-screen bg-[#FFF8EE]">
       <PortalSidebar role="admin" userName={session.user.name || 'Admin'} />
       <main className="flex-1 overflow-auto">
         {children}
