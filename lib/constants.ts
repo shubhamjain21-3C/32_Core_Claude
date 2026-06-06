@@ -1,8 +1,19 @@
-export const SITE_NAME = '3C Core'
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://3ccore.com'
-export const COMPANY_EMAIL = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'contactus@3ccore.com'
-export const COMPANY_PHONE = '+44 (0)20 0000 0000'
-export const COMPANY_ADDRESS = '3C Core Ltd, London, United Kingdom'
+export const COMPANY = {
+  name:            '3C Core Ltd.',
+  trading:         '3C',
+  address:         '60 Tottenham Court Road, Office 818, London, W1T 2EW, England',
+  email:           'contactus@3ccore.com',
+  phone:           '07852254792',
+  companies_house: '17050206',
+  ico:             'TBC',
+} as const
+
+// Legacy single-value exports for backward compatibility
+export const SITE_NAME     = '3C Core'
+export const SITE_URL      = process.env.NEXT_PUBLIC_SITE_URL      || 'https://3ccore.com'
+export const COMPANY_EMAIL = process.env.NEXT_PUBLIC_COMPANY_EMAIL  || 'contactus@3ccore.com'
+export const COMPANY_PHONE = '07852254792'
+export const COMPANY_ADDRESS = '60 Tottenham Court Road, Office 818, London, W1T 2EW, England'
 
 export const NAV_LINKS = [
   { href: '/',          label: 'Home'      },
@@ -13,17 +24,17 @@ export const NAV_LINKS = [
 ]
 
 export const SERVICES_LIST = [
-  'Property Management',
-  'Lettings Consultancy',
-  'Investment Advisory',
-  'Maintenance & Facilities',
-  'Tenant Relations',
-  'Compliance & Legal',
+  'Inventory Management',
+  'Maintenance & Cleaning',
+  'Midterm Property Inspection',
+  'Dispute Resolution',
+  'Deposit Negotiation',
+  'Letting Services',
 ]
 
 export const STATS = [
-  { label: 'Properties Managed', value: 250, suffix: '+' },
-  { label: 'Years Experience',   value: 15,  suffix: '+'  },
-  { label: 'Happy Landlords',    value: 180, suffix: '+'  },
-  { label: 'Tenant Satisfaction',value: 96,  suffix: '%'  },
+  { label: 'Properties Managed',  value: 250, suffix: '+' },
+  { label: 'Years Experience',    value: 15,  suffix: '+' },
+  { label: 'Happy Landlords',     value: 180, suffix: '+' },
+  { label: 'Tenant Satisfaction', value: 96,  suffix: '%' },
 ]

@@ -1,4 +1,5 @@
 'use client'
+import { Bot } from 'lucide-react'
 import { ServicePageHeader } from '@/components/layout/ServicePageHeader'
 import { ServiceTabNav } from '@/components/ui/ServiceTabNav'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
@@ -12,6 +13,9 @@ export default function MaintenancePage() {
       <div className="relative px-6 py-10 text-center overflow-hidden" style={{ borderBottom: '1px solid rgba(212,134,10,0.2)' }}>
         <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "url('/assets/images/homepage_3c.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-3" style={{ background: 'rgba(212,134,10,0.15)', color: '#D4860A', border: '1px solid rgba(212,134,10,0.3)' }}>
+            <Bot size={12} />AI-Assisted Service
+          </div>
           <h1 className="font-heading font-bold text-[#2C1F14] text-3xl sm:text-4xl">Property Maintenance & Compliance</h1>
           <p className="mt-2 text-[#8B3A2A] text-base sm:text-lg">Keeping your property safe, legal, and well-maintained</p>
         </div>
@@ -22,11 +26,18 @@ export default function MaintenancePage() {
             <>
               {tab === 'description' && (
                 <div className="space-y-8">
+                  <div className="rounded-xl p-4 flex gap-3" style={{ background: 'rgba(212,134,10,0.08)', border: '1px solid rgba(212,134,10,0.25)' }}>
+                    <Bot size={20} className="text-[#D4860A] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-[#2C1F14] text-sm">AI Compliance Tracking — Coming Soon</p>
+                      <p className="text-xs text-[#8B3A2A] mt-0.5">Our AI will automatically track certificate expiry dates, flag upcoming compliance deadlines, and notify landlords before penalties occur.</p>
+                    </div>
+                  </div>
                   <Section title="Compliance Checks We Offer">
                     <div className="grid sm:grid-cols-2 gap-5 mt-3">
                       {COMPLIANCE_ITEMS.map(item => (
                         <div key={item.title} className="rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(212,134,10,0.25)' }}>
-                          <div className="text-2xl mb-2">{item.icon}</div>
+                          <div className="inline-block px-2 py-0.5 rounded text-xs font-bold mb-2" style={{ background: 'rgba(212,134,10,0.15)', color: '#D4860A' }}>{item.label}</div>
                           <h3 className="font-semibold text-[#2C1F14] mb-1">{item.title}</h3>
                           <p className="text-xs text-[#8B3A2A] mb-2 uppercase tracking-wide font-medium">{item.frequency}</p>
                           <p className="text-sm text-[#2C1F14] leading-relaxed">{item.desc}</p>
@@ -88,12 +99,12 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 const COMPLIANCE_ITEMS = [
-  { icon: '🔥', title: 'Gas Safety Certificate', frequency: 'Annual — Legal Requirement', desc: 'Must be carried out by a Gas Safe registered engineer. Includes smoke alarm and carbon monoxide alarm check. Landlord must provide tenant a copy within 28 days.' },
-  { icon: '⚡', title: 'EICR', frequency: 'Every 5 Years — Legal Requirement', desc: 'Electrical Installation Condition Report. Carried out by a qualified electrician. Required under the Electrical Safety Standards in the Private Rented Sector (England) Regulations 2020.' },
-  { icon: '🏠', title: 'EPC', frequency: 'Every 10 Years — Legal Requirement', desc: 'Energy Performance Certificate. Property must achieve minimum EPC rating of E. Must be provided to tenant before moving in. Minimum C rating expected in future legislation.' },
-  { icon: '💧', title: 'Legionella Risk Assessment', frequency: 'Recommended Annually', desc: 'Required by the Health and Safety at Work Act 1974. Identifies risk of Legionella bacteria in water systems.' },
-  { icon: '🔌', title: 'PAT Testing', frequency: 'Recommended Annually for HMOs', desc: 'Portable Appliance Testing for all electrical appliances provided by the landlord. Not a legal requirement for private rentals but strongly advised.' },
-  { icon: '📋', title: 'Property Licensing', frequency: 'As Required', desc: 'HMO Licence (mandatory for 5+ unrelated people). Additional and Selective licensing vary by local authority. Failure to licence can result in unlimited fines and rent repayment orders.' },
+  { label: 'Gas', title: 'Gas Safety Certificate', frequency: 'Annual — Legal Requirement', desc: 'Must be carried out by a Gas Safe registered engineer. Includes smoke alarm and carbon monoxide alarm check. Landlord must provide tenant a copy within 28 days.' },
+  { label: 'Elec', title: 'EICR', frequency: 'Every 5 Years — Legal Requirement', desc: 'Electrical Installation Condition Report. Carried out by a qualified electrician. Required under the Electrical Safety Standards in the Private Rented Sector (England) Regulations 2020.' },
+  { label: 'EPC', title: 'EPC', frequency: 'Every 10 Years — Legal Requirement', desc: 'Energy Performance Certificate. Property must achieve minimum EPC rating of E. Must be provided to tenant before moving in. Minimum C rating expected in future legislation.' },
+  { label: 'H2O', title: 'Legionella Risk Assessment', frequency: 'Recommended Annually', desc: 'Required by the Health and Safety at Work Act 1974. Identifies risk of Legionella bacteria in water systems.' },
+  { label: 'PAT', title: 'PAT Testing', frequency: 'Recommended Annually for HMOs', desc: 'Portable Appliance Testing for all electrical appliances provided by the landlord. Not a legal requirement for private rentals but strongly advised.' },
+  { label: 'HMO', title: 'Property Licensing', frequency: 'As Required', desc: 'HMO Licence (mandatory for 5+ unrelated people). Additional and Selective licensing vary by local authority. Failure to licence can result in unlimited fines and rent repayment orders.' },
 ]
 
 const MAINTENANCE_FAQS = [

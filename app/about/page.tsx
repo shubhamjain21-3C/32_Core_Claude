@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Mail, Phone, MapPin, Handshake, CheckCircle, Trophy } from 'lucide-react'
 import { ServicePageHeader } from '@/components/layout/ServicePageHeader'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
 
@@ -29,7 +30,7 @@ export default function AboutPage() {
           </ul>
           <div className="text-sm text-[#8B3A2A] space-y-0.5">
             <p>Registered in England and Wales · Companies House No: 17050206</p>
-            <p>Registered Address: 60 Tottenham Court Road, London, W1T 2EW</p>
+            <p>Registered Address: 60 Tottenham Court Road, Office 818, London, W1T 2EW, England</p>
           </div>
         </div>
 
@@ -46,7 +47,7 @@ export default function AboutPage() {
         <div className="grid sm:grid-cols-3 gap-6 mb-10">
           {VALUES.map(v => (
             <div key={v.title} className="rounded-2xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(212,134,10,0.2)' }}>
-              <div className="text-3xl mb-3">{v.icon}</div>
+              <div className="flex justify-center mb-3"><v.Icon size={32} className="text-[#D4860A]" /></div>
               <h3 className="font-heading font-bold text-[#2C1F14] text-xl mb-2">{v.title}</h3>
               <p className="text-sm text-[#8B3A2A] leading-relaxed">{v.desc}</p>
             </div>
@@ -63,9 +64,9 @@ export default function AboutPage() {
         <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(212,134,10,0.2)' }}>
           <h2 className="font-heading font-semibold text-[#D4860A] text-xl mb-4">Contact Details</h2>
           <div className="space-y-2 text-sm text-[#2C1F14]">
-            <p>📧 <a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a></p>
-            <p>📞 <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
-            <p>📍 60 Tottenham Court Road, London, W1T 2EW, England</p>
+            <p className="flex items-center gap-2"><Mail size={14} className="text-[#D4860A] shrink-0" /><a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a></p>
+            <p className="flex items-center gap-2"><Phone size={14} className="text-[#D4860A] shrink-0" /><a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
+            <p className="flex items-start gap-2"><MapPin size={14} className="text-[#D4860A] shrink-0 mt-0.5" />60 Tottenham Court Road, Office 818, London, W1T 2EW, England</p>
           </div>
         </div>
       </div>
@@ -76,7 +77,7 @@ export default function AboutPage() {
 }
 
 const VALUES = [
-  { icon: '🤝', title: 'Connected', desc: 'We build genuine relationships between landlords, tenants, and property professionals.' },
-  { icon: '✅', title: 'Consistent', desc: 'Every inspection, report, and mediation is carried out to the same high standard.' },
-  { icon: '🏆', title: 'Confident', desc: 'We are transparent, compliant, and backed by UK property law expertise.' },
+  { Icon: Handshake, title: 'Connected', desc: 'We build genuine relationships between landlords, tenants, and property professionals.' },
+  { Icon: CheckCircle, title: 'Consistent', desc: 'Every inspection, report, and mediation is carried out to the same high standard.' },
+  { Icon: Trophy, title: 'Confident', desc: 'We are transparent, compliant, and backed by UK property law expertise.' },
 ]

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Mail, Phone, MapPin } from 'lucide-react'
 import { ServicePageHeader } from '@/components/layout/ServicePageHeader'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
 import { ContactForm } from '@/components/forms/ContactForm'
@@ -32,9 +33,9 @@ export default function ContactPage() {
             <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(212,134,10,0.2)' }}>
               <h2 className="font-heading font-semibold text-[#D4860A] text-lg mb-4">Contact Information</h2>
               <div className="space-y-3 text-sm text-[#2C1F14]">
-                <p>📧 <a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a></p>
-                <p>📞 <a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
-                <p>📍 60 Tottenham Court Road, London, W1T 2EW, England</p>
+                <p className="flex items-center gap-2"><Mail size={14} className="text-[#D4860A] shrink-0" /><a href="mailto:contactus@3ccore.com" className="text-[#D4860A] underline">contactus@3ccore.com</a></p>
+                <p className="flex items-center gap-2"><Phone size={14} className="text-[#D4860A] shrink-0" /><a href="tel:07852254792" className="text-[#D4860A] underline">07852254792</a></p>
+                <p className="flex items-start gap-2"><MapPin size={14} className="text-[#D4860A] shrink-0 mt-0.5" />60 Tottenham Court Road, Office 818, London, W1T 2EW, England</p>
               </div>
             </div>
 

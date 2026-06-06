@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { RegisterForm } from '@/components/portal/RegisterForm'
 
 export const metadata: Metadata = {
@@ -10,29 +10,67 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-[#050d1a] flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md">
-
-        <div className="bg-[#0d1f3c] border border-[#1e3a5f] rounded-2xl p-8 shadow-2xl shadow-[#050d1a]/50">
-          <div className="text-center mb-8">
-            <Link href="/">
-              <Image src="/logo/3CCore_Logo_Compact_Header.svg" alt="3C Core" width={240} height={40} className="h-10 w-auto mx-auto mb-6" />
-            </Link>
-            <h1 className="text-xl font-bold font-heading text-white mb-1">Create Your Account</h1>
-            <p className="text-[#7aaecc] text-sm">Register to manage your properties with 3C Core</p>
-          </div>
-
-          <RegisterForm />
-
-          <p className="mt-6 text-center text-[#7aaecc] text-sm">
-            Already have an account?{' '}
-            <Link href="/portal/login" className="text-[#6ab4e8] hover:text-[#00ccff] transition-colors font-medium">
-              Sign in
-            </Link>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: 'linear-gradient(160deg,#FFF8EE 0%,#FDE8B0 55%,#F0A830 100%)' }}
+    >
+      {/* Header */}
+      <header
+        className="h-14 flex items-center px-6"
+        style={{ background: 'rgba(44,31,20,0.92)', borderBottom: '1px solid rgba(212,134,10,0.3)' }}
+      >
+        <Link href="/portal" className="flex items-center gap-1.5 text-[#F0A830] hover:text-white transition-colors text-sm font-medium">
+          <ArrowLeft size={15} />
+          Portal Selection
+        </Link>
+        <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-center hidden sm:block">
+          <p className="font-heading font-bold text-white text-base leading-none">3C Core</p>
+          <p className="text-[#F0A830] text-[10px] tracking-[0.15em] uppercase mt-0.5">
+            Connected | Consistent | Confident
           </p>
-        </div>
+        </Link>
+      </header>
 
-      </div>
+      {/* Main */}
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div
+            className="rounded-2xl p-8 shadow-xl"
+            style={{
+              background: 'rgba(255,255,255,0.82)',
+              border: '1.5px solid rgba(212,134,10,0.3)',
+            }}
+          >
+            {/* Brand */}
+            <div className="text-center mb-8">
+              <Link href="/" className="inline-block mb-4">
+                <p className="font-heading font-bold text-[#2C1F14] text-2xl leading-none">3C Core</p>
+                <p className="text-[#D4860A] text-[10px] tracking-[0.15em] uppercase mt-1">
+                  Connected | Consistent | Confident
+                </p>
+              </Link>
+              <h1 className="font-heading font-bold text-[#2C1F14] text-xl mb-1">Create Your Account</h1>
+              <p className="text-[#8B3A2A] text-sm">Register to manage your properties with 3C Core</p>
+            </div>
+
+            <RegisterForm />
+
+            <div className="mt-6 space-y-3 text-center text-sm">
+              <p className="text-[#8B3A2A]">
+                Already have an account?{' '}
+                <Link href="/portal/login" className="font-semibold text-[#D4860A] hover:underline">
+                  Sign in
+                </Link>
+              </p>
+              <div className="border-t pt-4" style={{ borderColor: 'rgba(212,134,10,0.2)' }}>
+                <Link href="/portal" className="text-xs text-[#8B3A2A] hover:text-[#D4860A] transition-colors">
+                  ← Back to portal selection
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }
