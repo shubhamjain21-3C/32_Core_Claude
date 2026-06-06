@@ -1,4 +1,5 @@
 'use client'
+import { Bot } from 'lucide-react'
 import { ServicePageHeader } from '@/components/layout/ServicePageHeader'
 import { ServiceTabNav } from '@/components/ui/ServiceTabNav'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
@@ -16,6 +17,9 @@ export default function InventoryPage() {
         <div className="absolute inset-0 opacity-[0.07]"
           style={{ backgroundImage: "url('/assets/images/homepage_3c.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-3" style={{ background: 'rgba(212,134,10,0.15)', color: '#D4860A', border: '1px solid rgba(212,134,10,0.3)' }}>
+            <Bot size={12} />AI-Powered Service
+          </div>
           <h1 className="font-heading font-bold text-[#2C1F14] text-3xl sm:text-4xl">
             Check In / Check Out Inventory Services
           </h1>
@@ -31,6 +35,13 @@ export default function InventoryPage() {
             <>
               {tab === 'description' && (
                 <div className="space-y-10">
+                  <div className="rounded-xl p-4 flex gap-3" style={{ background: 'rgba(212,134,10,0.08)', border: '1px solid rgba(212,134,10,0.25)' }}>
+                    <Bot size={20} className="text-[#D4860A] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-[#2C1F14] text-sm">AI-Assisted Reports — Powered by Claude</p>
+                      <p className="text-xs text-[#8B3A2A] mt-0.5">Upload your photos and notes. Our AI analyses each room, flags damage, and produces a legally structured inventory report in under 3 minutes.</p>
+                    </div>
+                  </div>
                   <Section title="Why Inventories Matter">
                     <p>A property inventory is a detailed record of the condition and contents of a property at a specific point in time. Under tenancy deposit protection rules, a thorough inventory is essential for making or defending deposit deductions at the end of a tenancy.</p>
                     <p className="mt-3">Without a proper check-in inventory, landlords cannot legally make deposit deductions — and tenants have no documented baseline to challenge unfair claims. 3C Core provides both AI-assisted and professional agent inventory services.</p>

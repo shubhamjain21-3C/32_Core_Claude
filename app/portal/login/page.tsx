@@ -1,21 +1,22 @@
 'use client'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Home, Key, ClipboardList, User } from 'lucide-react'
 import { LoginForm } from '@/components/portal/LoginForm'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import type { LucideIcon } from 'lucide-react'
 
-const ROLE_LABELS: Record<string, { icon: string; title: string; desc: string }> = {
-  landlord: { icon: '🏠', title: 'Landlord Login',          desc: 'Access your property dashboard & reports' },
-  tenant:   { icon: '🔑', title: 'Tenant Login',            desc: 'View your tenancy documents & inspections' },
-  manager:  { icon: '📋', title: 'Property Manager Login',  desc: 'Manage portfolios and client accounts' },
-  default:  { icon: '👤', title: 'Client Portal Login',     desc: 'Sign in to access your 3C Core account' },
+const ROLE_LABELS: Record<string, { Icon: LucideIcon; title: string; desc: string }> = {
+  landlord: { Icon: Home,          title: 'Landlord Login',          desc: 'Access your property dashboard & reports' },
+  tenant:   { Icon: Key,           title: 'Tenant Login',            desc: 'View your tenancy documents & inspections' },
+  manager:  { Icon: ClipboardList, title: 'Property Manager Login',  desc: 'Manage portfolios and client accounts' },
+  default:  { Icon: User,          title: 'Client Portal Login',     desc: 'Sign in to access your 3C Core account' },
 }
 
 function LoginContent() {
   const params = useSearchParams()
   const role = params.get('role') ?? 'default'
-  const { icon, title, desc } = ROLE_LABELS[role] ?? ROLE_LABELS.default
+  const { Icon, title, desc } = ROLE_LABELS[role] ?? ROLE_LABELS.default
 
   return (
     <div className="w-full max-w-md">
@@ -36,7 +37,7 @@ function LoginContent() {
             </p>
           </Link>
 
-          <div className="text-3xl mb-2">{icon}</div>
+          <div className="flex justify-center mb-2"><Icon size={30} className="text-[#D4860A]" /></div>
           <h1 className="font-heading font-bold text-[#2C1F14] text-xl mb-1">{title}</h1>
           <p className="text-[#8B3A2A] text-sm">{desc}</p>
         </div>

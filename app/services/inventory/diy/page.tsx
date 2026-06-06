@@ -1,0 +1,472 @@
+'use client'
+import { useState, useRef } from 'react'
+import Link from 'next/link'
+import { ArrowLeft, ArrowRight, Upload, Plus, Trash2, CheckCircle, Download, Bot, Loader2 } from 'lucide-react'
+import { ServicePageHeader } from '@/components/layout/ServicePageHeader'
+
+type ReportType = 'Check-In' | 'Check-Out' | 'Midterm'
+type Condition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged'
+
+interface RoomMedia {
+  name: string
+  files: { url: string; note: string }[]
+}
+
+interface AnalysisItem {
+  item_name: string
+  category: string
+  condition: Condition
+  description: string
+  concerns: string
+}
+
+interface RoomAnalysis {
+  room_name: string
+  room_summary: string
+  overall_condition: Condition
+  items: AnalysisItem[]
+}
+
+const CONDITION_COLORS: Record<Condition, string> = {
+  excellent: '#22c55e',
+  good:      '#84cc16',
+  fair:      '#f59e0b',
+  poor:      '#ef4444',
+  damaged:   '#7f1d1d',
+}
+
+const AI_STEPS = [
+  'Scanning uploaded photos…',
+  'Identifying property items…',
+  'Assessing conditions…',
+  'Generating descriptions…',
+  'Structuring your report…',
+]
+
+const inputCls = 'w-full px-3 py-2 rounded-lg text-sm text-[#2C1F14] border focus:outline-none focus:ring-1 focus:ring-[#D4860A]'
+const inputStyle = { borderColor: 'rgba(212,134,10,0.35)', background: 'rgba(255,255,255,0.7)' }
+
+export default function InventoryDIYPage() {
+  const [step, setStep] = useState(1)
+  const [reportType, setReportType] = useState<ReportType>('Check-In')
+  const [address, setAddress] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [inspector, setInspector] = useState('')
+  const [rooms, setRooms] = useState<RoomMedia[]>([{ name: 'Living Room', files: [] }])
+  const [analysis, setAnalysis] = useState<RoomAnalysis[]>([])
+  const [aiStep, setAiStep] = useState(0)
+  const [processing, setProcessing] = useState(false)
+  const [aiError, setAiError] = useState('')
+  const fileRefs = useRef<Record<number, HTMLInputElement | null>>({})
+
+  // Step 1 — Property Details
+  function goToStep2(e: React.FormEvent) {
+    e.preventDefault()
+    setStep(2)
+  }
+
+  // Step 2 — Room management
+  function addRoom() {
+    setRooms(r => [...r, { name: `Room ${r.length + 1}`, files: [] }])
+  }
+  function removeRoom(i: number) {
+    setRooms(r => r.filter((_, idx) => idx !== i))
+  }
+  function updateRoomName(i: number, name: string) {
+    setRooms(r => r.map((rm, idx) => idx === i ? { ...rm, name } : rm))
+  }
+  function addNote(ri: number, fi: number, note: string) {
+    setRooms(r => r.map((rm, idx) => idx === ri
+      ? { ...rm, files: rm.files.map((f, fIdx) => fIdx === fi ? { ...f, note } : f) }
+      : rm
+    ))
+  }
+  function removeFile(ri: number, fi: number) {
+    setRooms(r => r.map((rm, idx) => idx === ri
+      ? { ...rm, files: rm.files.filter((_, fIdx) => fIdx !== fi) }
+      : rm
+    ))
+  }
+  function handleFiles(ri: number, files: FileList | null) {
+    if (!files) return
+    const newFiles = Array.from(files).map(f => ({ url: URL.createObjectURL(f), note: '' }))
+    setRooms(r => r.map((rm, idx) => idx === ri ? { ...rm, files: [...rm.files, ...newFiles] } : rm))
+  }
+
+  // Step 3 — AI Analysis
+  async function runAnalysis() {
+    setProcessing(true)
+    setAiError('')
+    setStep(3)
+
+    // Animate AI steps
+    for (let i = 0; i < AI_STEPS.length; i++) {
+      setAiStep(i)
+      await new Promise(r => setTimeout(r, 1500))
+    }
+
+    try {
+      const payload = {
+        rooms: rooms.map(rm => ({
+          name: rm.name,
+          mediaUrls: rm.files.map(f => f.url),
+          notes: rm.files.map(f => f.note).filter(Boolean),
+        })),
+      }
+
+      const res = await fetch('/api/inventory/analyse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Analysis failed')
+
+      setAnalysis(data.analysis)
+      setStep(4)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setAiError(msg)
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  // Step 4 — Inline edit
+  function updateItemField(ri: number, ii: number, field: keyof AnalysisItem, value: string) {
+    setAnalysis(a => a.map((room, rIdx) => rIdx === ri
+      ? { ...room, items: room.items.map((item, iIdx) => iIdx === ii ? { ...item, [field]: value } : item) }
+      : room
+    ))
+  }
+
+  // Step 5 — Download placeholder
+  function downloadReport() {
+    const text = `3C CORE — AI INVENTORY REPORT
+Report Type: ${reportType}
+Property: ${address}
+Date: ${date}
+Inspector: ${inspector}
+
+${analysis.map(room => `
+=== ${room.room_name} ===
+Overall: ${room.overall_condition}
+Summary: ${room.room_summary}
+
+${room.items.map(item => `  • ${item.item_name} [${item.condition}]: ${item.description}`).join('\n')}
+`).join('\n')}
+
+Generated by 3C Core AI | contactus@3ccore.com | 3ccore.com`
+
+    const blob = new Blob([text], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `3CCore_Inventory_Report_${date}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div className="min-h-screen" style={{ background: 'linear-gradient(160deg,#FFF8EE 0%,#FDE8B0 60%,#F5C060 100%)' }}>
+      <ServicePageHeader />
+
+      {/* Hero */}
+      <div className="relative px-6 py-8 text-center" style={{ borderBottom: '1px solid rgba(212,134,10,0.2)' }}>
+        <div className="inline-flex items-center gap-1.5 mb-3 px-3 py-1 rounded-full" style={{ background: 'rgba(212,134,10,0.12)', border: '1px solid rgba(212,134,10,0.4)' }}>
+          <Bot size={12} style={{ color: '#D4860A' }} />
+          <span className="text-[11px] font-medium tracking-wide" style={{ color: '#D4860A' }}>AI-Powered Inventory</span>
+        </div>
+        <h1 className="font-heading font-bold text-[#2C1F14] text-2xl sm:text-3xl">DIY Inventory Tool</h1>
+        <p className="mt-1 text-[#8B3A2A] text-sm">Upload photos — our AI generates a professional report in minutes</p>
+      </div>
+
+      {/* Step indicator */}
+      <div className="max-w-3xl mx-auto px-4 pt-6">
+        <div className="flex items-center gap-2 mb-8">
+          {[
+            { n: 1, label: 'Property Details' },
+            { n: 2, label: 'Upload Media' },
+            { n: 3, label: 'AI Analysis', ai: true },
+            { n: 4, label: 'Review Report', ai: true },
+            { n: 5, label: 'Download PDF' },
+          ].map(({ n, label, ai }, i, arr) => (
+            <div key={n} className="flex items-center flex-1 min-w-0">
+              <div className="flex flex-col items-center flex-shrink-0">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{
+                    background: step >= n ? '#D4860A' : 'rgba(212,134,10,0.15)',
+                    color: step >= n ? 'white' : '#8B3A2A',
+                  }}
+                >
+                  {step > n ? <CheckCircle size={14} /> : n}
+                </div>
+                <p className="text-[10px] text-center mt-1 leading-tight hidden sm:block" style={{ color: step >= n ? '#D4860A' : '#8B3A2A' }}>
+                  {ai && <span className="font-bold">[AI] </span>}{label}
+                </p>
+              </div>
+              {i < arr.length - 1 && (
+                <div className="flex-1 h-px mx-1" style={{ background: step > n ? '#D4860A' : 'rgba(212,134,10,0.25)' }} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* STEP 1 */}
+        {step === 1 && (
+          <form onSubmit={goToStep2} className="space-y-5 max-w-lg pb-12">
+            <h2 className="font-heading font-semibold text-[#D4860A] text-xl">Step 1 — Property Details</h2>
+            <div>
+              <label className="block text-sm font-medium text-[#2C1F14] mb-1">Report Type *</label>
+              <div className="flex gap-2 flex-wrap">
+                {(['Check-In', 'Check-Out', 'Midterm'] as ReportType[]).map(rt => (
+                  <button key={rt} type="button" onClick={() => setReportType(rt)}
+                    className="px-4 py-2 rounded-lg text-sm font-medium"
+                    style={{
+                      background: reportType === rt ? '#D4860A' : 'rgba(255,255,255,0.6)',
+                      color: reportType === rt ? 'white' : '#2C1F14',
+                      border: `1.5px solid ${reportType === rt ? '#D4860A' : 'rgba(212,134,10,0.35)'}`,
+                    }}>
+                    {rt}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#2C1F14] mb-1">Property Address *</label>
+              <input value={address} onChange={e => setAddress(e.target.value)} required className={inputCls} style={inputStyle} placeholder="60 Example Street, London, E1 1AA" />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#2C1F14] mb-1">Inspection Date *</label>
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} required className={inputCls} style={inputStyle} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#2C1F14] mb-1">Inspector Name *</label>
+                <input value={inspector} onChange={e => setInspector(e.target.value)} required className={inputCls} style={inputStyle} />
+              </div>
+            </div>
+            <button type="submit" className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white" style={{ background: '#D4860A' }}>
+              Next <ArrowRight size={16} />
+            </button>
+          </form>
+        )}
+
+        {/* STEP 2 */}
+        {step === 2 && (
+          <div className="space-y-6 pb-12">
+            <div className="flex items-center justify-between">
+              <h2 className="font-heading font-semibold text-[#D4860A] text-xl">Step 2 — Upload Media by Room</h2>
+              <button onClick={() => setStep(1)} className="text-sm text-[#8B3A2A] flex items-center gap-1 hover:text-[#D4860A]">
+                <ArrowLeft size={14} /> Back
+              </button>
+            </div>
+
+            {rooms.map((room, ri) => (
+              <div key={ri} className="rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(212,134,10,0.2)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <input
+                    value={room.name}
+                    onChange={e => updateRoomName(ri, e.target.value)}
+                    className="flex-1 px-3 py-1.5 rounded-lg text-sm font-semibold text-[#2C1F14] border focus:outline-none focus:ring-1 focus:ring-[#D4860A]"
+                    style={{ borderColor: 'rgba(212,134,10,0.35)', background: 'rgba(255,255,255,0.8)' }}
+                  />
+                  {rooms.length > 1 && (
+                    <button onClick={() => removeRoom(ri)} className="text-red-400 hover:text-red-600">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Upload area */}
+                <div
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer mb-3"
+                  style={{ borderColor: 'rgba(212,134,10,0.4)' }}
+                  onClick={() => fileRefs.current[ri]?.click()}
+                >
+                  <Upload size={20} className="text-[#D4860A] mx-auto mb-1" />
+                  <p className="text-xs text-[#8B3A2A]">Click to upload photos (JPG, PNG, WEBP)</p>
+                  <input
+                    ref={el => { fileRefs.current[ri] = el }}
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,image/heic"
+                    className="hidden"
+                    onChange={e => handleFiles(ri, e.target.files)}
+                  />
+                </div>
+
+                {/* Uploaded files */}
+                {room.files.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {room.files.map((file, fi) => (
+                      <div key={fi} className="relative rounded-lg overflow-hidden" style={{ border: '1px solid rgba(212,134,10,0.2)' }}>
+                        <img src={file.url} alt="" className="w-full h-24 object-cover" />
+                        <button
+                          onClick={() => removeFile(ri, fi)}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs"
+                        >
+                          ×
+                        </button>
+                        <input
+                          value={file.note}
+                          onChange={e => addNote(ri, fi, e.target.value)}
+                          placeholder="Add a note…"
+                          className="w-full px-2 py-1 text-xs border-t bg-white/80 text-[#2C1F14] outline-none"
+                          style={{ borderColor: 'rgba(212,134,10,0.2)' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <button onClick={addRoom} className="flex items-center gap-2 text-sm text-[#D4860A] font-medium hover:underline">
+              <Plus size={16} /> Add Room
+            </button>
+
+            <button
+              onClick={runAnalysis}
+              disabled={rooms.every(r => r.files.length === 0)}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white disabled:opacity-50"
+              style={{ background: '#D4860A' }}
+            >
+              <Bot size={16} /> Analyse with AI <ArrowRight size={16} />
+            </button>
+          </div>
+        )}
+
+        {/* STEP 3 — AI Processing */}
+        {step === 3 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 pb-12">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-4 border-[#D4860A] opacity-20" />
+              <div className="absolute inset-0 rounded-full border-4 border-t-[#D4860A] border-r-transparent border-b-transparent border-l-transparent animate-spin" />
+              <Bot size={24} className="absolute inset-0 m-auto text-[#D4860A]" />
+            </div>
+            <div>
+              <h2 className="font-heading font-bold text-[#2C1F14] text-xl mb-2">Analysing your property…</h2>
+              <p className="text-sm text-[#8B3A2A]">This may take a minute</p>
+            </div>
+            <div className="w-full max-w-xs bg-white/40 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-1000"
+                style={{ background: '#D4860A', width: `${((aiStep + 1) / AI_STEPS.length) * 100}%` }}
+              />
+            </div>
+            <p className="text-sm font-medium text-[#D4860A] min-h-[20px]">{AI_STEPS[aiStep]}</p>
+            {aiError && (
+              <div className="p-4 rounded-lg text-sm text-red-700 max-w-md" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                <strong>Error:</strong> {aiError}
+                <br />
+                <button onClick={() => setStep(2)} className="mt-2 text-[#D4860A] hover:underline">Go back and try again</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 4 — Review */}
+        {step === 4 && (
+          <div className="space-y-6 pb-12">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-heading font-bold text-[#2C1F14] text-xl">Step 4 — Review AI Report</h2>
+                <p className="text-xs text-[#8B3A2A] mt-0.5">Edit any AI-generated text before approving</p>
+              </div>
+              <div className="px-3 py-1 rounded-full text-[11px] font-medium" style={{ background: 'rgba(212,134,10,0.12)', border: '1px solid rgba(212,134,10,0.4)', color: '#D4860A' }}>
+                Report generated by 3C Core AI
+              </div>
+            </div>
+
+            {analysis.map((room, ri) => (
+              <div key={ri} className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(212,134,10,0.2)' }}>
+                <div className="px-5 py-3 flex items-center justify-between" style={{ background: 'rgba(212,134,10,0.08)' }}>
+                  <h3 className="font-heading font-semibold text-[#2C1F14]">{room.room_name}</h3>
+                  <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium capitalize" style={{ background: CONDITION_COLORS[room.overall_condition] }}>
+                    {room.overall_condition}
+                  </span>
+                </div>
+                <div className="px-5 py-3 space-y-3" style={{ background: 'rgba(255,255,255,0.5)' }}>
+                  <p className="text-sm text-[#2C1F14] italic">{room.room_summary}</p>
+                  <div className="space-y-2">
+                    {room.items.map((item, ii) => (
+                      <div
+                        key={ii}
+                        className="rounded-lg p-3 space-y-1.5"
+                        style={{
+                          background: 'rgba(255,255,255,0.7)',
+                          border: `1px solid ${(item.condition === 'poor' || item.condition === 'damaged') ? 'rgba(239,68,68,0.4)' : 'rgba(212,134,10,0.15)'}`,
+                          borderLeft: (item.condition === 'poor' || item.condition === 'damaged') ? '3px solid #ef4444' : undefined,
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-[#2C1F14]">{item.item_name}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded text-white capitalize" style={{ background: CONDITION_COLORS[item.condition] }}>{item.condition}</span>
+                          {(item.condition === 'poor' || item.condition === 'damaged') && (
+                            <span className="text-[10px] text-red-600 font-medium">Flagged by AI</span>
+                          )}
+                        </div>
+                        <textarea
+                          value={item.description}
+                          onChange={e => updateItemField(ri, ii, 'description', e.target.value)}
+                          rows={2}
+                          className="w-full text-xs text-[#2C1F14] rounded px-2 py-1 resize-none outline-none"
+                          style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(212,134,10,0.2)' }}
+                        />
+                        {item.concerns && (
+                          <p className="text-xs text-red-600">{item.concerns}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <button
+              onClick={() => setStep(5)}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white"
+              style={{ background: '#D4860A' }}
+            >
+              Approve &amp; Generate PDF <ArrowRight size={16} />
+            </button>
+          </div>
+        )}
+
+        {/* STEP 5 — Download */}
+        {step === 5 && (
+          <div className="pb-12 space-y-6 max-w-lg">
+            <div className="text-center p-8 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(212,134,10,0.2)' }}>
+              <CheckCircle size={40} className="text-[#D4860A] mx-auto" />
+              <h2 className="font-heading font-bold text-[#2C1F14] text-xl">Report Approved</h2>
+              <p className="text-sm text-[#8B3A2A]">Your AI-generated inventory report is ready.</p>
+              <button
+                onClick={downloadReport}
+                className="flex items-center gap-2 mx-auto px-6 py-3 rounded-lg font-semibold text-white"
+                style={{ background: '#D4860A' }}
+              >
+                <Download size={16} /> Download Inventory Report
+              </button>
+              <p className="text-xs text-[#8B3A2A]">PDF generation coming soon — download as text for now</p>
+            </div>
+
+            <div className="p-4 rounded-xl text-sm text-[#2C1F14]" style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(212,134,10,0.2)' }}>
+              <p className="font-semibold text-[#D4860A] mb-2">Save your report</p>
+              <p className="text-xs text-[#8B3A2A]">Create a free account to save this report to your portal, share it with landlords and tenants, and get digital signatures.</p>
+              <Link href="/portal/register" className="inline-block mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ background: '#D4860A' }}>
+                Create Free Account
+              </Link>
+            </div>
+
+            <div className="text-center text-xs text-[#8B3A2A] pt-2">
+              This report was generated using 3C Core AI, powered by Anthropic Claude.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
