@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, Mail, Phone, CheckCircle, Clock, Users, Home, GraduationCap } from 'lucide-react'
+import { Mail, Phone, CheckCircle, Clock, Users, Home, GraduationCap } from 'lucide-react'
 import { ServicePageHeader } from '@/components/layout/ServicePageHeader'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
 import toast, { Toaster } from 'react-hot-toast'
@@ -122,12 +121,6 @@ export default function LettingServicesPage() {
         <div className="absolute inset-0 opacity-[0.07]"
           style={{ backgroundImage: "url('/assets/images/homepage_3c.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
 
-        {/* AI badge */}
-        <div className="relative inline-flex items-center gap-1.5 mb-3 px-3 py-1 rounded-full" style={{ background: 'rgba(212,134,10,0.12)', border: '1px solid rgba(212,134,10,0.4)' }}>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#D4860A]" style={{ animation: 'aiPulse 2s infinite' }} />
-          <span className="text-[11px] font-medium tracking-wide" style={{ color: '#D4860A' }}>Powered by AI</span>
-        </div>
-
         <div className="relative">
           <h1 className="font-heading font-bold text-[#2C1F14] text-3xl sm:text-4xl">Letting Services</h1>
           <p className="mt-2 text-[#8B3A2A] text-base">
@@ -136,20 +129,6 @@ export default function LettingServicesPage() {
         </div>
       </div>
 
-      {/* AI callout */}
-      <div className="max-w-5xl mx-auto px-4 pt-6">
-        <div className="rounded-lg p-4 text-sm text-[#2C1F14] leading-relaxed" style={{ borderLeft: '3px solid #D4860A', background: 'rgba(212,134,10,0.06)' }}>
-          <strong className="text-[#D4860A]">AI-Powered Matching:</strong> Our AI matches your requirements to available properties and predicts the best lease options for your profile — saving you hours of searching.
-        </div>
-      </div>
-
-      {/* Back link */}
-      <div className="max-w-5xl mx-auto px-4 pt-3">
-        <Link href="/services" className="inline-flex items-center gap-1.5 text-sm text-[#8B3A2A] hover:text-[#D4860A] transition-colors">
-          <ArrowLeft size={14} />
-          Back to Services
-        </Link>
-      </div>
 
       {/* Tabs */}
       <div className="max-w-5xl mx-auto px-4 mt-4">
