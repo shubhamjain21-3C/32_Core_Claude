@@ -224,6 +224,32 @@ function ServicesContent() {
             </motion.div>
           ))}
         </div>
+
+        {/* My Dashboard button — only when logged in */}
+        {session && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="mt-6"
+          >
+            <Link
+              href="/portal/customer/dashboard"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold"
+              style={{
+                background: '#D4860A',
+                color: 'white',
+                border: '1.5px solid #D4860A',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#F0A830'; (e.currentTarget as HTMLAnchorElement).style.borderColor = '#F0A830' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#D4860A'; (e.currentTarget as HTMLAnchorElement).style.borderColor = '#D4860A' }}
+            >
+              <LayoutDashboard size={15} />
+              My Portal Dashboard
+            </Link>
+          </motion.div>
+        )}
       </div>
 
       <ComingSoonWidget />

@@ -1,6 +1,5 @@
 'use client'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { LayoutDashboard, Building2, Wrench, CreditCard, LogOut, ChevronRight, User } from 'lucide-react'
@@ -36,7 +35,10 @@ export function PortalSidebar({ role, userName }: { role: 'customer' | 'admin'; 
       {/* Logo */}
       <div className="p-5" style={{ borderBottom: '1px solid rgba(212,134,10,0.2)' }}>
         <Link href="/">
-          <Image src="/logo/3CCore_Logo_Compact_Header.svg" alt="3C Core" width={180} height={32} className="h-8 w-auto" />
+          <p className="font-heading font-bold text-white text-xl leading-none">3C Core</p>
+          <p className="text-[9px] tracking-[0.16em] uppercase mt-0.5 font-medium" style={{ color: '#D4860A' }}>
+            Connected · Consistent · Confident
+          </p>
         </Link>
       </div>
 
