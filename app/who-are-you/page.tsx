@@ -340,9 +340,18 @@ function WhoAreYouContent() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
               className="mt-5 text-xs"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              style={{ color: 'rgba(255,255,255,0.7)' }}
             >
-              Don&apos;t have an account? You can create one on the login page.
+              Don&apos;t have an account yet?{' '}
+              <Link
+                href="/portal/register"
+                className="underline underline-offset-2 font-medium transition-colors"
+                style={{ color: '#F0A830' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#FFD175' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#F0A830' }}
+              >
+                Create an account
+              </Link>
             </motion.p>
           </>
         )}
