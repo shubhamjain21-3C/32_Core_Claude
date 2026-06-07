@@ -21,14 +21,19 @@ end;
 $$;
 
 -- Helper: is the current user an admin?
+-- Uses plpgsql (not sql) so table ref is resolved at runtime, not parse time
 create or replace function public.is_admin()
-returns boolean language sql security definer as $$
-  select coalesce(
+returns boolean language plpgsql security definer as $$
+begin
+  return coalesce(
     (select true from public.users
      where "User_id" = auth.uid()
-       and portal_role_id = (select id from public.ref_portal_roles where code = 'admin' limit 1)),
+       and portal_role_id = (
+         select id from public.ref_portal_roles where code = 'admin' limit 1
+       )),
     false
-  )
+  );
+end;
 $$;
 
 
