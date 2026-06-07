@@ -1,0 +1,19 @@
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded background -->
+  <rect width="180" height="180" rx="40" fill="#FDE8B0"/>
+  <!-- Amber left accent bar -->
+  <rect x="0" y="0" width="28" height="180" rx="8" fill="#D4860A"/>
+  <!-- Amber bottom bar -->
+  <rect x="0" y="151" width="180" height="29" fill="#D4860A"/>
+  <!-- 3C wordmark -->
+  <text
+    x="110"
+    y="116"
+    text-anchor="middle"
+    font-family="Montserrat, Arial Black, sans-serif"
+    font-weight="900"
+    font-size="74"
+    fill="#2C1F14"
+    letter-spacing="1"
+  >3C</text>
+</svg>

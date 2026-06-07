@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="80" fill="#FDE8B0"/>
+  <rect x="0" y="0" width="72" height="512" rx="16" fill="#D4860A"/>
+  <rect x="0" y="432" width="512" height="80" fill="#D4860A"/>
+  <text
+    x="300"
+    y="300"
+    text-anchor="middle"
+    font-family="Montserrat, Arial Black, sans-serif"
+    font-weight="900"
+    font-size="200"
+    fill="#2C1F14"
+    letter-spacing="4"
+  >3C</text>
+  <text
+    x="300"
+    y="390"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-weight="400"
+    font-size="48"
+    fill="#854F0B"
+    letter-spacing="14"
+  >CORE</text>
+</svg>

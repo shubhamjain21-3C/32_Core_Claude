@@ -24,19 +24,36 @@ export const metadata: Metadata = {
   },
   description: 'Professional property services — inventory, inspections, dispute resolution, maintenance and deposit negotiation. UK-based, GDPR compliant.',
   metadataBase: new URL('https://3ccore.com'),
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.svg',
+  },
   openGraph: {
     title: '3C Core — Property Services',
     description: 'One Skyline. Infinite Needs. Property Services You Can Finally Trust.',
     url: 'https://3ccore.com',
     siteName: '3C Core',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    images: [
+      {
+        url: '/og-logo.svg',
+        width: 512,
+        height: 512,
+        alt: '3C Core — Connected, Consistent, Confident',
+      },
+    ],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: '3C Core — Property Services',
     description: 'One Skyline. Infinite Needs. Property Services You Can Finally Trust.',
-    images: ['/og-image.png'],
+    images: ['/og-logo.svg'],
   },
   robots: { index: true, follow: true },
 }
