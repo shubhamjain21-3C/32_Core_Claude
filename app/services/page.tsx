@@ -1,9 +1,10 @@
 'use client'
-import { useEffect, Suspense } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, User, LogOut, LayoutDashboard } from 'lucide-react'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
 
 type Role = 'property_manager' | 'landlord' | 'tenant' | 'student'
@@ -47,6 +48,9 @@ const FOOTER_LINKS = [
 function ServicesContent() {
   const router = useRouter()
   const params = useSearchParams()
+  const { data: session } = useSession()
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const dropRef = useRef<HTMLDivElement>(null)
   const roleParam = params.get('role') as Role | null
   const intent = params.get('intent') ?? 'services'
 
@@ -85,12 +89,50 @@ function ServicesContent() {
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(30,15,5,0.52)' }} />
       <div className="ai-grid-overlay" />
 
-      {/* Change Selection nav — z-20 so it sits above the -mt-6 main content div */}
-      <div className="relative z-20 pt-5 pl-5">
+      {/* Top bar: back + user */}
+      <div className="relative z-20 pt-5 px-5 flex items-center justify-between">
         <Link href={`/who-are-you?intent=${intent}`} className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
           <ArrowLeft size={15} />
           Change Selection
         </Link>
+
+        {session ? (
+          <div className="relative" ref={dropRef}>
+            <button
+              onClick={() => setUserMenuOpen(o => !o)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium"
+              style={{ background: 'rgba(212,134,10,0.18)', border: '1px solid rgba(240,168,48,0.45)', color: '#F0A830' }}
+            >
+              <User size={13} />
+              {session.user?.name?.split(' ')[0]}
+            </button>
+            {userMenuOpen && (
+              <div
+                className="absolute right-0 top-full mt-2 w-44 rounded-xl py-1 shadow-xl"
+                style={{ background: '#2C1F14', border: '1px solid rgba(212,134,10,0.3)' }}
+              >
+                <Link href="/portal/customer/dashboard" onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/80 hover:text-[#F0A830] hover:bg-[rgba(212,134,10,0.1)] transition-colors">
+                  <LayoutDashboard size={13} /> My Portal
+                </Link>
+                <Link href="/portal/customer/account" onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/80 hover:text-[#F0A830] hover:bg-[rgba(212,134,10,0.1)] transition-colors">
+                  <User size={13} /> My Account
+                </Link>
+                <div style={{ borderTop: '1px solid rgba(212,134,10,0.2)', margin: '4px 0' }} />
+                <button onClick={() => signOut({ callbackUrl: '/portal' })}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/5 transition-colors w-full text-left">
+                  <LogOut size={13} /> Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Link href="/portal/login"
+            className="text-sm px-3 py-1.5 border border-[#F0A830] text-[#F0A830] rounded hover:bg-[rgba(212,134,10,0.2)] transition-colors">
+            Login
+          </Link>
+        )}
       </div>
 
       <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 text-center overflow-y-auto py-4 -mt-6">
