@@ -1,9 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
-import { Eye, EyeOff, ClipboardList, Key, GraduationCap } from 'lucide-react'
+import { Eye, EyeOff, ClipboardList, Key, GraduationCap, Building2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { LookupRow } from '@/types/database'
 
 const inputCls = [
   'w-full px-4 py-2.5 rounded-lg text-sm text-[#2C1F14] placeholder-[#8B3A2A]/50',
@@ -14,19 +15,34 @@ const inputCls = [
 
 const labelCls = 'block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase'
 
-interface PortalRoleOption {
-  id: string
-  label: string
-  Icon: LucideIcon
+const ROLE_ICONS: Record<string, LucideIcon> = {
+  property_manager: ClipboardList,
+  landlord:         Building2,
+  tenant:           Key,
+  student:          GraduationCap,
 }
 
-const PORTAL_ROLES: PortalRoleOption[] = [
-  { id: 'property_manager', label: 'Property Manager / Landlord', Icon: ClipboardList },
-  { id: 'tenant',           label: 'Tenant',                      Icon: Key },
-  { id: 'student',          label: 'Student',                     Icon: GraduationCap },
+const FALLBACK_ROLES: LookupRow[] = [
+  { id: 1, code: 'property_manager', label: 'Property Manager / Landlord', description: null, sort_order: 1, is_active: true, flags: {}, created_at: '' },
+  { id: 3, code: 'tenant',           label: 'Tenant',                      description: null, sort_order: 3, is_active: true, flags: {}, created_at: '' },
+  { id: 4, code: 'student',          label: 'Student',                     description: null, sort_order: 4, is_active: true, flags: {}, created_at: '' },
 ]
 
 export function RegisterForm() {
+  const [portalRoles, setPortalRoles] = useState<LookupRow[]>(FALLBACK_ROLES)
+
+  useEffect(() => {
+    fetch('/api/lookups?table=ref_portal_roles')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          // Exclude 'admin' from self-registration
+          setPortalRoles(data.filter((r: LookupRow) => r.code !== 'admin'))
+        }
+      })
+      .catch(() => {}) // keep fallback on error
+  }, [])
+
   const [form, setForm] = useState({
     firstName:  '',
     middleName: '',
@@ -98,21 +114,24 @@ export function RegisterForm() {
       <div>
         <label className={labelCls}>I am a *</label>
         <div className="flex flex-col gap-2">
-          {PORTAL_ROLES.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setForm(f => ({ ...f, portalRole: id }))}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-left text-sm transition-all ${
-                form.portalRole === id
-                  ? 'bg-[rgba(212,134,10,0.12)] border-[#D4860A] text-[#2C1F14] font-medium'
-                  : 'bg-white/70 border-[rgba(212,134,10,0.25)] text-[#8B3A2A] hover:border-[#D4860A]'
-              }`}
-            >
-              <Icon size={16} className={form.portalRole === id ? 'text-[#D4860A]' : 'text-[#8B3A2A]'} />
-              {label}
-            </button>
-          ))}
+          {portalRoles.map(({ code, label }) => {
+            const Icon = ROLE_ICONS[code] ?? ClipboardList
+            return (
+              <button
+                key={code}
+                type="button"
+                onClick={() => setForm(f => ({ ...f, portalRole: code }))}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-left text-sm transition-all ${
+                  form.portalRole === code
+                    ? 'bg-[rgba(212,134,10,0.12)] border-[#D4860A] text-[#2C1F14] font-medium'
+                    : 'bg-white/70 border-[rgba(212,134,10,0.25)] text-[#8B3A2A] hover:border-[#D4860A]'
+                }`}
+              >
+                <Icon size={16} className={form.portalRole === code ? 'text-[#D4860A]' : 'text-[#8B3A2A]'} />
+                {label}
+              </button>
+            )
+          })}
         </div>
       </div>
 

@@ -13,6 +13,7 @@
     "@hookform/resolvers": "^3.6.0",
     "@stripe/react-stripe-js": "^6.6.0",
     "@stripe/stripe-js": "^9.7.0",
+    "@supabase/supabase-js": "^2.107.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.3.0",
     "jspdf": "^4.2.1",

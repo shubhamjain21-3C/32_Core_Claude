@@ -5,45 +5,43 @@ third-party setup, or architectural decisions.
 
 ---
 
-## BLOCKER 1: Supabase Project Credentials
+## BLOCKER 1: Supabase — Run Migration 020
 
-**Status:** Not configured  
-**Blocks:** Database migrations, auth, storage, RLS policies  
+**Status:** Credentials collected ✓ — Migration NOT YET RUN in Supabase  
+**Blocks:** All live database features  
 
-**Required actions:**
-1. Create project at supabase.com
-2. Copy Project URL and anon key → add to Vercel env vars:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-3. Run migrations: `npx supabase db push` (requires `supabase login` first)
+**Required action — one step:**
+1. Go to Supabase Dashboard → SQL Editor → New Query
+2. Open `supabase/migrations/020_finalised_schema_with_lookups.sql` in VS Code
+3. Copy entire file → paste into SQL Editor → click Run
 
-**Migrations ready to run** (`supabase/migrations/`):
-- `010_add_user_role_journey.sql`
-- `011_properties_and_tenancies.sql`
-- `012_inventory_reports.sql`
-- `013_inventory_media.sql`
-- `014_payments.sql`
-- `015_letting_services.sql`
-- `016_storage_buckets_extended.sql`
-- `017_rls_extended.sql`
+**This creates:**
+- 16 `ref_*` lookup tables (seeded)
+- 11 core tables (users, properties, tenancies, lettings, inventory, media, services, chat)
+- RLS on all tables
+- 3 storage buckets (inventory-media, inventory-reports, portal-media)
+
+**Superseded migrations (010–018):** Never applied. Replaced by 020. Do not run.
+**Migration 000_complete_schema.sql:** Draft. Superseded by 020. Do not run.
 
 ---
 
 ## BLOCKER 2: Auth Migration — NextAuth → Supabase Auth
 
-**Status:** Not started — requires planning  
-**Blocks:** User accounts, portal login, role-based access  
+**Status:** NextAuth in use. Supabase Auth wired in migration 020 (trigger ready).  
+**Blocks:** Live user accounts persisted in Supabase  
 
-Currently using NextAuth.js. All new DB tables use `profiles.id` (UUID from
-Supabase Auth) as the central FK (star schema). Migration plan required:
+Current state: NextAuth + `lib/store.ts` (in-memory demo).
+Migration 020 installs `handle_new_user()` trigger on `auth.users`.
 
-1. Set up Supabase Auth (email + password provider)
-2. Create trigger: `auth.users` → `public.profiles` on new user signup
-3. Replace `useSession()` (NextAuth) with `useUser()` (Supabase) throughout
-4. Remove `next-auth` dependency once migrated
+Next steps when ready:
+1. Enable Supabase Auth email/password provider (Authentication → Providers)
+2. Replace `lib/store.ts` queries with `lib/supabase.ts` queries in API routes
+3. Update `lib/auth.ts` NextAuth authorize to call Supabase instead of `findUserByEmail`
+4. Replace `useSession()` with Supabase session where needed
+5. Remove `next-auth` once fully migrated
 
-**Do not break** existing portal login flow until migration is ready.
+**Do not break** existing portal login flow until steps 1-4 are complete.
 
 ---
 
