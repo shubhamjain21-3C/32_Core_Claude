@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_TABLES = new Set([
   'ref_portal_roles','ref_property_types','ref_property_status',
   'ref_tenancy_status','ref_furnished_types','ref_letting_status',
