@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
@@ -24,10 +24,6 @@ export function LoginForm({ provider, returnUrl }: LoginFormProps) {
   const [error,    setError]    = useState('')
   const router = useRouter()
 
-  const defaultRedirect = provider === 'admin-login'
-    ? '/portal/admin/dashboard'
-    : '/portal/customer/dashboard'
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -36,10 +32,24 @@ export function LoginForm({ provider, returnUrl }: LoginFormProps) {
     setLoading(false)
     if (res?.error) {
       setError('Invalid email or password. Please try again.')
-    } else {
-      router.push(returnUrl || defaultRedirect)
-      router.refresh()
+      return
     }
+    if (returnUrl) {
+      router.push(returnUrl)
+      router.refresh()
+      return
+    }
+    if (provider === 'admin-login') {
+      router.push('/portal/admin/dashboard')
+      router.refresh()
+      return
+    }
+    // Customer login without a return URL — read session to determine role and
+    // land on the services page so the user picks their service before going to the portal.
+    const session = await getSession()
+    const portalRole = session?.user?.portalRole ?? 'property_manager'
+    router.push(`/services?role=${portalRole}`)
+    router.refresh()
   }
 
   return (
