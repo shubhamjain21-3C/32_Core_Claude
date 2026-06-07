@@ -1,19 +1,36 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { services } from '@/data/services'
 import toast from 'react-hot-toast'
+import type { LookupRow } from '@/types/database'
+
+const FALLBACK_TYPES: LookupRow[]    = ['residential','hmo','commercial','student','holiday_let'].map((c,i) => ({ id: i+1, code: c, label: c.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()), description:null, sort_order:i+1, is_active:true, flags:{}, created_at:'' }))
+const FALLBACK_STATUSES: LookupRow[] = ['occupied','vacant','under_management','for_letting'].map((c,i) => ({ id: i+1, code: c, label: c.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()), description:null, sort_order:i+1, is_active:true, flags:{}, created_at:'' }))
 
 const inputClass = 'w-full bg-white border border-[rgba(212,134,10,0.3)] text-[#2C1F14] placeholder-[#8B3A2A]/40 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#D4860A] focus:ring-1 focus:ring-[#D4860A] transition-colors'
 
 export function AddPropertyForm() {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading]           = useState(false)
+  const [propertyTypes, setPropertyTypes]   = useState<LookupRow[]>(FALLBACK_TYPES)
+  const [propertyStatuses, setPropertyStatuses] = useState<LookupRow[]>(FALLBACK_STATUSES)
   const [form, setForm] = useState({
-    address: '', postcode: '', type: 'Residential', bedrooms: 1,
-    monthlyRent: 0, status: 'Vacant', serviceIds: [] as string[],
+    address: '', postcode: '', type: 'residential', bedrooms: 1,
+    monthlyRent: 0, status: 'vacant', serviceIds: [] as string[],
   })
+
+  useEffect(() => {
+    fetch('/api/lookups?table=ref_property_types')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (Array.isArray(data) && data.length > 0) setPropertyTypes(data) })
+      .catch(() => {})
+    fetch('/api/lookups?table=ref_property_status')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (Array.isArray(data) && data.length > 0) setPropertyStatuses(data) })
+      .catch(() => {})
+  }, [])
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [field]: e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
@@ -63,7 +80,7 @@ export function AddPropertyForm() {
         <div>
           <label className="block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase">Property Type</label>
           <select value={form.type} onChange={set('type')} className={inputClass}>
-            {['Residential', 'HMO', 'Commercial', 'Student', 'Holiday Let'].map(t => <option key={t}>{t}</option>)}
+            {propertyTypes.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
           </select>
         </div>
       </div>
@@ -80,7 +97,7 @@ export function AddPropertyForm() {
       <div>
         <label className="block text-[#2C1F14] text-xs font-medium mb-1.5 tracking-wide uppercase">Status</label>
         <select value={form.status} onChange={set('status')} className={inputClass}>
-          {['Occupied', 'Vacant', 'Under Management', 'For Letting'].map(s => <option key={s}>{s}</option>)}
+          {propertyStatuses.map(s => <option key={s.code} value={s.code}>{s.label}</option>)}
         </select>
       </div>
 
