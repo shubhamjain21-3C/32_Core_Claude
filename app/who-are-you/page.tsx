@@ -1,10 +1,10 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft, LogIn, UserPlus, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, LogOut, LayoutDashboard } from 'lucide-react'
 import { Suspense } from 'react'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
 
@@ -31,45 +31,33 @@ function WhoAreYouContent() {
   const { data: session, status } = useSession()
   const params = useSearchParams()
   const intent = (params.get('intent') ?? 'services') as 'services' | 'letting'
-
-  const [selectedRole, setSelectedRole] = useState<string | null>(null)
+  const [signingOut, setSigningOut] = useState(false)
 
   const roles = intent === 'letting' ? ROLES_LETTING : ROLES_SERVICES
 
-  function getServicesUrl(role: string) {
-    return intent === 'letting'
-      ? `/services/letting-services?role=${role}`
-      : `/services?role=${role}&intent=${intent}`
-  }
-
-  // If already logged in and has a stored role, auto-redirect to services
-  useEffect(() => {
-    if (status !== 'authenticated') return
-    const storedRole = typeof window !== 'undefined' ? sessionStorage.getItem('3c_user_role') : null
-    if (storedRole) {
-      router.replace(getServicesUrl(storedRole))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status])
+  const firstName  = session?.user?.name?.split(' ')[0] ?? ''
+  const isLoggedIn = status === 'authenticated'
 
   function handleRole(role: string) {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('3c_user_role', role)
       sessionStorage.setItem('3c_journey_intent', intent)
     }
-    if (status === 'authenticated') {
-      router.push(getServicesUrl(role))
-    } else {
-      setSelectedRole(role)
+    // If authenticated, go straight to portal (no login gate)
+    if (isLoggedIn) {
+      router.push('/portal/customer/dashboard')
+      return
     }
+    // Not authenticated → go directly to role-specific login page
+    router.push(`/portal/login?role=${role}&return=${encodeURIComponent('/portal/customer/dashboard')}`)
   }
 
-  function browseAsGuest(role: string) {
-    router.push(getServicesUrl(role))
+  async function handleSignOut() {
+    setSigningOut(true)
+    await signOut({ redirect: false })
+    setSigningOut(false)
+    // After sign-out, page re-renders with status='unauthenticated' and shows role cards
   }
-
-  const selectedRoleLabel = roles.find(r => r.role === selectedRole)?.label ?? ''
-  const firstName = session?.user?.name?.split(' ')[0] ?? session?.user?.name ?? ''
 
   return (
     <div
@@ -85,25 +73,12 @@ function WhoAreYouContent() {
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(30,15,5,0.55)' }} />
       <div className="ai-grid-overlay" />
 
-      {/* Top bar: back button + logged-in pill */}
-      <div className="relative z-20 pt-5 px-5 flex items-center justify-between">
-        <button
-          onClick={() => selectedRole ? setSelectedRole(null) : router.back()}
-          className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm"
-        >
+      {/* Back button */}
+      <div className="relative z-20 pt-5 pl-5">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
           <ArrowLeft size={15} />
-          {selectedRole ? 'Change Selection' : 'Back'}
-        </button>
-
-        {status === 'authenticated' && (
-          <div
-            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full"
-            style={{ background: 'rgba(212,134,10,0.2)', border: '1px solid rgba(240,168,48,0.5)', color: '#F0A830' }}
-          >
-            <CheckCircle2 size={12} />
-            {firstName ? `Hi, ${firstName}` : 'Signed in'}
-          </div>
-        )}
+          Back
+        </Link>
       </div>
 
       {/* Main */}
@@ -119,22 +94,102 @@ function WhoAreYouContent() {
           </Link>
         </motion.div>
 
-        {/* ── Role selection stage ── */}
-        {!selectedRole && (
+        {/* ── LOGGED IN: show signed-in panel ── */}
+        {isLoggedIn ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-sm"
+          >
+            {/* Signed-in card */}
+            <div
+              className="rounded-2xl p-6 mb-5 text-left"
+              style={{ background: 'rgba(44,31,20,0.85)', border: '1.5px solid rgba(240,168,48,0.5)', backdropFilter: 'blur(10px)' }}
+            >
+              <p className="text-[10px] tracking-widest uppercase font-medium mb-1" style={{ color: '#D4860A' }}>
+                Currently signed in as
+              </p>
+              <p className="font-heading font-bold text-white text-xl mb-1">{session?.user?.name}</p>
+              <p className="text-white/50 text-xs">{session?.user?.email}</p>
+            </div>
+
+            <h2 className="font-heading font-bold text-white text-xl mb-6">
+              What would you like to do?
+            </h2>
+
+            <div className="flex flex-col gap-3">
+              {/* Continue to portal */}
+              <motion.button
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={() => router.push('/portal/customer/dashboard')}
+                className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-semibold text-white text-sm"
+                style={{ background: '#D4860A', border: '1.5px solid #D4860A', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F0A830' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#D4860A' }}
+              >
+                <LayoutDashboard size={16} />
+                Continue to My Portal
+              </motion.button>
+
+              {/* Select a different role */}
+              <p className="text-white/40 text-xs mt-1 mb-1">— or select a service category below —</p>
+
+              <div className="flex flex-col gap-2">
+                {roles.map(({ role, label, desc }, i) => (
+                  <motion.button
+                    key={role}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + i * 0.07 }}
+                    onClick={() => handleRole(role)}
+                    className="text-left px-4 py-3 rounded-xl text-sm"
+                    style={{
+                      background: 'rgba(255,255,255,0.07)',
+                      border: '1.5px solid rgba(240,168,48,0.4)',
+                      backdropFilter: 'blur(8px)',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(240,168,48,0.18)'; e.currentTarget.style.borderColor = '#F0A830' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(240,168,48,0.4)' }}
+                  >
+                    <p className="font-semibold text-white">{label}</p>
+                    <p className="text-white/50 text-xs mt-0.5">{desc}</p>
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Sign out & new session */}
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="mt-3 flex items-center justify-center gap-2 text-xs font-medium transition-colors disabled:opacity-50"
+                style={{ color: 'rgba(255,100,100,0.7)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,100,100,0.7)' }}
+              >
+                <LogOut size={13} />
+                {signingOut ? 'Signing out…' : 'Sign out & start a new session'}
+              </motion.button>
+            </div>
+          </motion.div>
+        ) : (
+          /* ── NOT LOGGED IN: show role selection ── */
           <>
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mb-2">
-              <h2 className="font-heading font-bold text-white text-2xl sm:text-3xl">
-                {status === 'authenticated' ? `Welcome back, ${firstName}` : 'And who are you?'}
-              </h2>
+              <h2 className="font-heading font-bold text-white text-2xl sm:text-3xl">And who are you?</h2>
             </motion.div>
 
             <motion.p
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.35 }}
               style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, maxWidth: 480, margin: '0 auto 28px', lineHeight: 1.6 }}
             >
-              {status === 'authenticated'
-                ? 'Select your role to go directly to your personalised services.'
-                : 'Our AI tailors your experience based on your role — giving you only the tools and services relevant to you.'}
+              Select your role — you&apos;ll be taken to your login page to access personalised services.
             </motion.p>
 
             <div className="flex flex-col gap-3 w-full max-w-sm">
@@ -153,16 +208,14 @@ function WhoAreYouContent() {
                     transition: 'all 0.25s ease',
                   }}
                   onMouseEnter={e => {
-                    const el = e.currentTarget
-                    el.style.background = 'rgba(240,168,48,0.22)'
-                    el.style.borderColor = '#F0A830'
-                    el.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.background = 'rgba(240,168,48,0.22)'
+                    e.currentTarget.style.borderColor = '#F0A830'
+                    e.currentTarget.style.transform = 'translateY(-2px)'
                   }}
                   onMouseLeave={e => {
-                    const el = e.currentTarget
-                    el.style.background = 'rgba(255,255,255,0.10)'
-                    el.style.borderColor = 'rgba(240,168,48,0.65)'
-                    el.style.transform = 'translateY(0)'
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.10)'
+                    e.currentTarget.style.borderColor = 'rgba(240,168,48,0.65)'
+                    e.currentTarget.style.transform = 'translateY(0)'
                   }}
                 >
                   <p className="font-heading font-semibold text-white text-base">{label}</p>
@@ -171,118 +224,16 @@ function WhoAreYouContent() {
               ))}
             </div>
 
-            {/* If logged in, show portal shortcut */}
-            {status === 'authenticated' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                className="mt-5"
-              >
-                <Link
-                  href="/portal/customer/dashboard"
-                  className="text-xs font-medium transition-colors"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
-                >
-                  Go to my portal dashboard →
-                </Link>
-              </motion.div>
-            )}
-          </>
-        )}
-
-        {/* ── Auth prompt stage (unauthenticated only) ── */}
-        {selectedRole && status !== 'authenticated' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-            className="w-full max-w-sm"
-          >
-            {/* Selected role indicator */}
-            <div className="mb-5 px-4 py-2 rounded-full inline-flex items-center gap-2 text-sm font-medium"
-              style={{ background: 'rgba(240,168,48,0.18)', border: '1px solid rgba(240,168,48,0.5)', color: '#F0A830' }}>
-              {selectedRoleLabel}
-            </div>
-
-            <h2 className="font-heading font-bold text-white text-2xl sm:text-3xl mb-2">
-              Welcome aboard
-            </h2>
-            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, maxWidth: 420, margin: '0 auto 28px', lineHeight: 1.6 }}>
-              Login or create a free account to access your personalised services, reports, and property tools.
-            </p>
-
-            <div className="flex flex-col gap-3">
-              {/* Login button */}
-              <motion.button
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                onClick={() => router.push(
-                  `/portal/login?role=${selectedRole}&return=${encodeURIComponent(getServicesUrl(selectedRole))}`
-                )}
-                className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-semibold text-white text-sm"
-                style={{ background: '#D4860A', border: '1.5px solid #D4860A', transition: 'all 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#F0A830' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#D4860A' }}
-              >
-                <LogIn size={16} />
-                Login to My Account
-              </motion.button>
-
-              {/* Register button */}
-              <motion.button
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.18 }}
-                onClick={() => router.push('/portal/register')}
-                className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-semibold text-sm"
-                style={{
-                  background: 'rgba(255,255,255,0.10)',
-                  border: '1.5px solid rgba(240,168,48,0.65)',
-                  backdropFilter: 'blur(8px)',
-                  color: 'white',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'rgba(240,168,48,0.22)'
-                  e.currentTarget.style.borderColor = '#F0A830'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.10)'
-                  e.currentTarget.style.borderColor = 'rgba(240,168,48,0.65)'
-                }}
-              >
-                <UserPlus size={16} />
-                Create Free Account
-              </motion.button>
-
-              {/* Guest browse */}
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.26 }}
-                onClick={() => browseAsGuest(selectedRole)}
-                className="text-xs font-medium transition-colors"
-                style={{ color: 'rgba(255,255,255,0.55)' }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.55)' }}
-              >
-                Continue without account →
-              </motion.button>
-            </div>
-
-            {/* Change selection */}
-            <button
-              onClick={() => setSelectedRole(null)}
-              className="mt-6 text-xs transition-colors"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#F0A830' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)' }}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.9 }}
+              className="mt-5 text-xs"
+              style={{ color: 'rgba(255,255,255,0.35)' }}
             >
-              ← Change my selection
-            </button>
-          </motion.div>
+              Don&apos;t have an account? You can create one on the login page.
+            </motion.p>
+          </>
         )}
       </div>
 

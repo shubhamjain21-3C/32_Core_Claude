@@ -48,13 +48,16 @@ function LoginContent() {
         <LoginForm provider="customer-login" returnUrl={returnUrl || undefined} />
 
         <div className="mt-6 space-y-3 text-center text-sm">
-          <p className="text-[#8B3A2A]">
-            Don&apos;t have an account?{' '}
-            <Link href="/portal/register" className="font-semibold text-[#D4860A] hover:underline">
-              Create one free
-            </Link>
-          </p>
-          <div className="border-t pt-4" style={{ borderColor: 'rgba(212,134,10,0.2)' }}>
+          {/* Create account — prominent button */}
+          <Link
+            href="/portal/register"
+            className="block w-full py-3 rounded-xl font-semibold text-sm border-2 transition-colors"
+            style={{ borderColor: '#D4860A', color: '#D4860A', background: 'transparent' }}
+            onMouseEnter={undefined}
+          >
+            Create a Free Account
+          </Link>
+          <div className="pt-2" style={{ borderTop: '1px solid rgba(212,134,10,0.2)' }}>
             <Link href="/portal" className="text-xs text-[#8B3A2A] hover:text-[#D4860A] transition-colors">
               ← Back to portal selection
             </Link>
