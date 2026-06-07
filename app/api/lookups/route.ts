@@ -9,6 +9,7 @@ const VALID_TABLES = new Set([
   'ref_report_types','ref_report_status','ref_condition_levels',
   'ref_room_types','ref_item_types','ref_entity_types',
   'ref_media_types','ref_service_types','ref_service_status','ref_chat_roles',
+  'ref_maintenance_types',
 ])
 
 export async function GET(req: NextRequest) {

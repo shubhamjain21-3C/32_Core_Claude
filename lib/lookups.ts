@@ -23,6 +23,7 @@ type LookupTable =
   | 'ref_service_types'
   | 'ref_service_status'
   | 'ref_chat_roles'
+  | 'ref_maintenance_types'
 
 // ── Generic fetcher — reads active rows ordered by sort_order ─────────────────
 async function fetchLookup(table: LookupTable): Promise<LookupRow[]> {
@@ -56,6 +57,7 @@ export const getMediaTypes       = () => fetchLookup('ref_media_types')
 export const getServiceTypes     = () => fetchLookup('ref_service_types')
 export const getServiceStatuses  = () => fetchLookup('ref_service_status')
 export const getChatRoles        = () => fetchLookup('ref_chat_roles')
+export const getMaintenanceTypes = () => fetchLookup('ref_maintenance_types')
 
 // ── lookupId — resolves a code to its integer id ──────────────────────────────
 // Use before inserting: e.g. status_id = await lookupId('ref_report_status','draft')

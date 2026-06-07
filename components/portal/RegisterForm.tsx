@@ -45,6 +45,11 @@ const FALLBACK_ROLES: LookupRow[] = [
 type OtpMethod = 'email' | 'phone'
 type OtpState  = 'idle' | 'sending' | 'sent'
 
+// Phone OTP is gated until an SMS provider is connected in Supabase
+// (Authentication → Providers → Phone). Flip this flag in env to enable.
+const PHONE_OTP_ENABLED =
+  (process.env.NEXT_PUBLIC_PHONE_OTP_ENABLED ?? 'false').toLowerCase() === 'true'
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function RegisterForm() {
@@ -313,31 +318,47 @@ export function RegisterForm() {
             </div>
           </button>
 
-          {/* Phone / SMS */}
-          <button
-            type="button"
-            disabled={!form.phone}
-            onClick={() => { setOtpMethod('phone'); setOtpState('idle'); setStep2Error('') }}
+          {/* Phone / SMS — disabled until SMS provider is wired up */}
+          <div
+            aria-disabled={!PHONE_OTP_ENABLED}
             className={[
-              'flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all',
-              !form.phone
-                ? 'opacity-50 cursor-not-allowed bg-white/40 border-[rgba(212,134,10,0.15)]'
-                : otpMethod === 'phone'
-                ? 'bg-[rgba(212,134,10,0.10)] border-[#D4860A]'
-                : 'bg-white/70 border-[rgba(212,134,10,0.25)] hover:border-[#D4860A]',
+              'flex flex-col items-center gap-2 p-4 rounded-xl border text-center relative',
+              PHONE_OTP_ENABLED
+                ? (otpMethod === 'phone'
+                    ? 'bg-[rgba(212,134,10,0.10)] border-[#D4860A] cursor-pointer'
+                    : 'bg-white/70 border-[rgba(212,134,10,0.25)] hover:border-[#D4860A] cursor-pointer')
+                : 'opacity-70 cursor-not-allowed bg-white/40 border-[rgba(212,134,10,0.20)]',
             ].join(' ')}
+            onClick={() => {
+              if (!PHONE_OTP_ENABLED) return
+              if (!form.phone) return
+              setOtpMethod('phone'); setOtpState('idle'); setStep2Error('')
+            }}
           >
-            <Smartphone size={20} className={otpMethod === 'phone' && form.phone ? 'text-[#D4860A]' : 'text-[#8B3A2A]'} />
+            <Smartphone size={20} className={otpMethod === 'phone' && PHONE_OTP_ENABLED ? 'text-[#D4860A]' : 'text-[#8B3A2A]'} />
             <div>
               <p className="text-xs font-semibold text-[#2C1F14]">SMS</p>
               <p className="text-[10px] text-[#8B3A2A]/70 mt-0.5">
-                {form.phone || 'No phone added'}
+                {PHONE_OTP_ENABLED ? (form.phone || 'No phone added') : 'Coming soon'}
               </p>
             </div>
-          </button>
+            {!PHONE_OTP_ENABLED && (
+              <span
+                className="absolute top-1 right-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide"
+                style={{ background: 'rgba(212,134,10,0.18)', color: '#8B3A2A' }}
+              >
+                Soon
+              </span>
+            )}
+          </div>
         </div>
 
-        {!form.phone && (
+        {!PHONE_OTP_ENABLED && (
+          <p className="text-[10px] text-[#8B3A2A]/70 -mt-1">
+            SMS verification is coming soon. We&apos;ll verify your phone number once the SMS service is connected — email verification completes signup for now.
+          </p>
+        )}
+        {PHONE_OTP_ENABLED && !form.phone && (
           <p className="text-[10px] text-[#8B3A2A]/60 -mt-1">
             Add a phone number in step 1 to enable SMS verification.
           </p>

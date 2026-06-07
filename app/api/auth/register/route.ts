@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { findUserByEmail, createUser, hash } from '@/lib/store'
-import { verifyOtp } from '@/lib/otp-store'
+import { getSupabaseClient } from '@/lib/supabase'
+
+export const dynamic = 'force-dynamic'
 
 const registerSchema = z.object({
   firstName:  z.string().min(1, 'First name is required'),
@@ -22,22 +24,50 @@ export async function POST(request: Request) {
     const body = await request.json()
     const data = registerSchema.parse(body)
 
-    // Verify OTP before creating account
-    const otpKey = data.otpMethod === 'email'
-      ? `email:${data.email.toLowerCase()}`
-      : `phone:${data.phone}`
-
-    if (!verifyOtp(otpKey, data.otpCode)) {
+    // ── Verify OTP via Supabase Auth ──────────────────────────────────────────
+    let supabase
+    try {
+      supabase = getSupabaseClient()
+    } catch {
       return NextResponse.json(
-        { success: false, message: 'Invalid or expired verification code. Please request a new one.' },
-        { status: 400 }
+        { success: false, message: 'Verification service is not configured. Please contact support.' },
+        { status: 500 },
       )
+    }
+
+    const { error: verifyError } =
+      data.otpMethod === 'email'
+        ? await supabase.auth.verifyOtp({
+            email: data.email,
+            token: data.otpCode,
+            type:  'email',
+          })
+        : await supabase.auth.verifyOtp({
+            phone: data.phone ?? '',
+            token: data.otpCode,
+            type:  'sms',
+          })
+
+    if (verifyError) {
+      const msg = verifyError.message.toLowerCase()
+      const friendly =
+        msg.includes('expired') ? 'Your verification code has expired. Please request a new one.'
+        : msg.includes('invalid') || msg.includes('mismatch') ? 'Incorrect verification code. Please try again.'
+        : verifyError.message || 'Verification failed. Please try again.'
+      return NextResponse.json({ success: false, message: friendly }, { status: 400 })
+    }
+
+    // ── Sign out the Supabase session — we use NextAuth for portal sessions ───
+    try {
+      await supabase.auth.signOut()
+    } catch {
+      /* ignore — we just don't want the Supabase session sticking around */
     }
 
     if (findUserByEmail(data.email)) {
       return NextResponse.json(
         { success: false, message: 'An account with this email already exists.' },
-        { status: 409 }
+        { status: 409 },
       )
     }
 
@@ -58,6 +88,7 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, errors: error.errors }, { status: 400 })
     }
+    console.error('[register] Unexpected error:', error)
     return NextResponse.json({ success: false, message: 'Registration failed' }, { status: 500 })
   }
 }
