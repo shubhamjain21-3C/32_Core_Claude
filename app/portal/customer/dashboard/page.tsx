@@ -2,8 +2,8 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { authOptions } from '@/lib/auth'
-import { getPropertiesByCustomer, getServicesByCustomer } from '@/lib/store'
-import { Building2, Wrench, TrendingUp, CheckCircle2, Plus } from 'lucide-react'
+import { getPropertiesByCustomer, getServicesByCustomer, findUserByEmail } from '@/lib/store'
+import { Building2, Wrench, TrendingUp, CheckCircle2, Plus, LayoutGrid } from 'lucide-react'
 
 export default async function CustomerDashboard() {
   const session = await getServerSession(authOptions)
@@ -17,18 +17,34 @@ export default async function CustomerDashboard() {
   const activeServices = myServices.filter(s => s.status === 'Active').length
   const allBenefits    = myServices.flatMap(s => s.benefits)
 
-  const firstName = session.user.name?.split(' ')[0] ?? session.user.name ?? 'there'
+  const firstName   = session.user.name?.split(' ')[0] ?? session.user.name ?? 'there'
+  const fullUser    = session.user.email ? findUserByEmail(session.user.email) : null
+  const portalRole  = fullUser?.portalRole ?? 'property_manager'
 
   return (
     <div className="p-6 md:p-8">
 
       {/* Header */}
-      <div className="mb-8">
-        <p className="text-[10px] tracking-[3px] text-[#D4860A] uppercase mb-1 font-medium">Client Portal</p>
-        <h1 className="text-2xl font-bold font-heading text-[#2C1F14]">
-          Welcome back, <span style={{ color: '#D4860A' }}>{firstName}</span>
-        </h1>
-        <p className="text-[#8B3A2A] text-sm mt-1">Here&apos;s your property portfolio overview.</p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] tracking-[3px] text-[#D4860A] uppercase mb-1 font-medium">Client Portal</p>
+          <h1 className="text-2xl font-bold font-heading text-[#2C1F14]">
+            Welcome back, <span style={{ color: '#D4860A' }}>{firstName}</span>
+          </h1>
+          <p className="text-[#8B3A2A] text-sm mt-1">Here&apos;s your property portfolio overview.</p>
+        </div>
+        <Link
+          href={`/services?role=${portalRole}`}
+          className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+          style={{
+            background: 'rgba(212,134,10,0.1)',
+            border: '1.5px solid rgba(212,134,10,0.35)',
+            color: '#D4860A',
+          }}
+        >
+          <LayoutGrid size={14} />
+          Browse Services
+        </Link>
       </div>
 
       {/* Stats */}

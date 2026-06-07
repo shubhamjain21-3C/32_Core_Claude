@@ -2,15 +2,16 @@ import type { NextAuthOptions } from 'next-auth'
 import type { JWT } from 'next-auth/jwt'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { findUserByEmail, hash } from '@/lib/store'
-import type { UserRole } from '@/types'
+import type { UserRole, PortalRole } from '@/types'
 
 declare module 'next-auth' {
   interface Session {
-    user: { id: string; name?: string | null; email?: string | null; role: UserRole }
+    user: { id: string; name?: string | null; email?: string | null; role: UserRole; portalRole?: PortalRole }
   }
   interface User {
     id: string
     role: UserRole
+    portalRole?: PortalRole
   }
 }
 
@@ -18,6 +19,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id: string
     role: UserRole
+    portalRole?: PortalRole
   }
 }
 
@@ -36,7 +38,7 @@ export const authOptions: NextAuthOptions = {
         const user = findUserByEmail(credentials.email)
         if (!user || user.role !== 'customer') return null
         if (user.passwordHash !== hash(credentials.password)) return null
-        return { id: user.id, name: user.name, email: user.email, role: 'customer' as UserRole }
+        return { id: user.id, name: user.name, email: user.email, role: 'customer' as UserRole, portalRole: user.portalRole }
       },
     }),
 
@@ -65,15 +67,17 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id   = user.id
-        token.role = (user as { role: UserRole }).role
+        token.id         = user.id
+        token.role       = (user as { role: UserRole }).role
+        token.portalRole = (user as { portalRole?: PortalRole }).portalRole
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id   = token.id
-        session.user.role = token.role
+        session.user.id         = token.id
+        session.user.role       = token.role
+        session.user.portalRole = token.portalRole
       }
       return session
     },

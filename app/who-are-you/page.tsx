@@ -2,9 +2,9 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft, LogOut, LayoutDashboard } from 'lucide-react'
+import { ArrowLeft, LogOut, LayoutDashboard, AlertTriangle } from 'lucide-react'
 import { Suspense } from 'react'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
 
@@ -26,37 +26,47 @@ const ROLES_LETTING = [
   { role: 'student', label: 'Student', desc: 'Find student accommodation' },
 ]
 
+const PORTAL_ROLE_LABELS: Record<string, string> = {
+  property_manager: 'Property Manager / Landlord',
+  tenant: 'Tenant',
+  student: 'Student',
+}
+
 function WhoAreYouContent() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const params = useSearchParams()
   const intent = (params.get('intent') ?? 'services') as 'services' | 'letting'
   const [signingOut, setSigningOut] = useState(false)
+  const [mismatchTarget, setMismatchTarget] = useState<string | null>(null)
 
   const roles = intent === 'letting' ? ROLES_LETTING : ROLES_SERVICES
 
-  const firstName  = session?.user?.name?.split(' ')[0] ?? ''
-  const isLoggedIn = status === 'authenticated'
+  const isLoggedIn   = status === 'authenticated'
+  const userPortalRole = session?.user?.portalRole ?? null
 
   function handleRole(role: string) {
+    // Block cross-role navigation when logged in
+    if (isLoggedIn && userPortalRole && userPortalRole !== role) {
+      setMismatchTarget(role)
+      return
+    }
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('3c_user_role', role)
       sessionStorage.setItem('3c_journey_intent', intent)
     }
-    // If authenticated, go straight to portal (no login gate)
+    const servicesUrl = `/services?role=${role}&intent=${intent}`
     if (isLoggedIn) {
-      router.push('/portal/customer/dashboard')
+      router.push(servicesUrl)
       return
     }
-    // Not authenticated → go directly to role-specific login page
-    router.push(`/portal/login?role=${role}&return=${encodeURIComponent('/portal/customer/dashboard')}`)
+    router.push(`/portal/login?role=${role}&return=${encodeURIComponent(servicesUrl)}`)
   }
 
   async function handleSignOut() {
     setSigningOut(true)
     await signOut({ redirect: false })
     setSigningOut(false)
-    // After sign-out, page re-renders with status='unauthenticated' and shows role cards
   }
 
   return (
@@ -73,13 +83,89 @@ function WhoAreYouContent() {
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(30,15,5,0.55)' }} />
       <div className="ai-grid-overlay" />
 
-      {/* Back button */}
-      <div className="relative z-20 pt-5 pl-5">
+      {/* Top bar: back + sign out (when logged in) */}
+      <div className="relative z-20 pt-5 px-5 flex items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
           <ArrowLeft size={15} />
           Back
         </Link>
+        {isLoggedIn && (
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+            style={{ color: 'rgba(255,120,120,0.8)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,120,120,0.8)' }}
+          >
+            <LogOut size={13} />
+            {signingOut ? 'Signing out…' : 'Sign out'}
+          </button>
+        )}
       </div>
+
+      {/* Role mismatch modal */}
+      <AnimatePresence>
+        {mismatchTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center px-4"
+            style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+            onClick={() => setMismatchTarget(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20 }}
+              className="w-full max-w-sm rounded-2xl p-6 text-center"
+              style={{ background: '#2C1F14', border: '1.5px solid rgba(240,168,48,0.5)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ background: 'rgba(212,134,10,0.15)', border: '1.5px solid rgba(212,134,10,0.4)' }}>
+                <AlertTriangle size={22} style={{ color: '#F0A830' }} />
+              </div>
+              <h3 className="font-heading font-bold text-white text-lg mb-2">Wrong Account Type</h3>
+              <p className="text-white/60 text-sm mb-1 leading-relaxed">
+                You&apos;re currently signed in as a{' '}
+                <span style={{ color: '#F0A830', fontWeight: 600 }}>
+                  {PORTAL_ROLE_LABELS[userPortalRole ?? ''] ?? userPortalRole}
+                </span>.
+              </p>
+              <p className="text-white/60 text-sm mb-5 leading-relaxed">
+                To access{' '}
+                <span className="text-white/80 font-medium">
+                  {PORTAL_ROLE_LABELS[mismatchTarget] ?? mismatchTarget}
+                </span>{' '}
+                services, please sign out and sign back in with the correct account.
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={async () => { setMismatchTarget(null); await handleSignOut() }}
+                  className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-all"
+                  style={{ background: '#D4860A', border: '1.5px solid #D4860A' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#F0A830' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#D4860A' }}
+                >
+                  Sign out &amp; switch account
+                </button>
+                <button
+                  onClick={() => setMismatchTarget(null)}
+                  className="w-full py-2.5 rounded-xl text-sm transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.5)', background: 'transparent' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main */}
       <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 text-center -mt-8">
@@ -112,6 +198,12 @@ function WhoAreYouContent() {
               </p>
               <p className="font-heading font-bold text-white text-xl mb-1">{session?.user?.name}</p>
               <p className="text-white/50 text-xs">{session?.user?.email}</p>
+              {userPortalRole && (
+                <span className="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: 'rgba(212,134,10,0.2)', color: '#F0A830', border: '1px solid rgba(212,134,10,0.35)' }}>
+                  {PORTAL_ROLE_LABELS[userPortalRole]}
+                </span>
+              )}
             </div>
 
             <h2 className="font-heading font-bold text-white text-xl mb-6">
@@ -119,63 +211,82 @@ function WhoAreYouContent() {
             </h2>
 
             <div className="flex flex-col gap-3">
-              {/* Continue to portal */}
+              {/* Continue to services */}
               <motion.button
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                onClick={() => router.push('/portal/customer/dashboard')}
+                onClick={() => router.push(`/services?role=${userPortalRole ?? 'property_manager'}&intent=${intent}`)}
                 className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-xl font-semibold text-white text-sm"
                 style={{ background: '#D4860A', border: '1.5px solid #D4860A', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#F0A830' }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#D4860A' }}
               >
-                <LayoutDashboard size={16} />
-                Continue to My Portal
+                Continue to My Services
               </motion.button>
 
-              {/* Select a different role */}
+              {/* Go to portal directly */}
+              <motion.button
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                onClick={() => router.push('/portal/customer/dashboard')}
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-medium text-sm"
+                style={{
+                  background: 'rgba(212,134,10,0.12)',
+                  border: '1.5px solid rgba(212,134,10,0.4)',
+                  color: '#F0A830',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(212,134,10,0.22)'; e.currentTarget.style.borderColor = '#F0A830' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(212,134,10,0.12)'; e.currentTarget.style.borderColor = 'rgba(212,134,10,0.4)' }}
+              >
+                <LayoutDashboard size={15} />
+                Go to My Portal Dashboard
+              </motion.button>
+
+              {/* Select a different role (same role only navigates, other roles trigger mismatch modal) */}
               <p className="text-white/40 text-xs mt-1 mb-1">— or select a service category below —</p>
 
               <div className="flex flex-col gap-2">
-                {roles.map(({ role, label, desc }, i) => (
-                  <motion.button
-                    key={role}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 + i * 0.07 }}
-                    onClick={() => handleRole(role)}
-                    className="text-left px-4 py-3 rounded-xl text-sm"
-                    style={{
-                      background: 'rgba(255,255,255,0.07)',
-                      border: '1.5px solid rgba(240,168,48,0.4)',
-                      backdropFilter: 'blur(8px)',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(240,168,48,0.18)'; e.currentTarget.style.borderColor = '#F0A830' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(240,168,48,0.4)' }}
-                  >
-                    <p className="font-semibold text-white">{label}</p>
-                    <p className="text-white/50 text-xs mt-0.5">{desc}</p>
-                  </motion.button>
-                ))}
+                {roles.map(({ role, label, desc }, i) => {
+                  const isMine = role === userPortalRole
+                  return (
+                    <motion.button
+                      key={role}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + i * 0.07 }}
+                      onClick={() => handleRole(role)}
+                      className="text-left px-4 py-3 rounded-xl text-sm relative"
+                      style={{
+                        background: isMine ? 'rgba(212,134,10,0.12)' : 'rgba(255,255,255,0.05)',
+                        border: isMine ? '1.5px solid rgba(240,168,48,0.5)' : '1.5px solid rgba(255,255,255,0.1)',
+                        backdropFilter: 'blur(8px)',
+                        transition: 'all 0.2s',
+                        opacity: isMine ? 1 : 0.6,
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = isMine ? 'rgba(212,134,10,0.22)' : 'rgba(255,100,100,0.08)'
+                        e.currentTarget.style.borderColor = isMine ? '#F0A830' : 'rgba(255,100,100,0.4)'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = isMine ? 'rgba(212,134,10,0.12)' : 'rgba(255,255,255,0.05)'
+                        e.currentTarget.style.borderColor = isMine ? 'rgba(240,168,48,0.5)' : 'rgba(255,255,255,0.1)'
+                      }}
+                    >
+                      <p className="font-semibold" style={{ color: isMine ? '#F0A830' : 'rgba(255,255,255,0.5)' }}>{label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: isMine ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)' }}>{desc}</p>
+                      {!isMine && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded"
+                          style={{ background: 'rgba(255,80,80,0.12)', color: 'rgba(255,100,100,0.6)', border: '1px solid rgba(255,80,80,0.2)' }}>
+                          locked
+                        </span>
+                      )}
+                    </motion.button>
+                  )
+                })}
               </div>
-
-              {/* Sign out & new session */}
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                onClick={handleSignOut}
-                disabled={signingOut}
-                className="mt-3 flex items-center justify-center gap-2 text-xs font-medium transition-colors disabled:opacity-50"
-                style={{ color: 'rgba(255,100,100,0.7)' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#ff6b6b' }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,100,100,0.7)' }}
-              >
-                <LogOut size={13} />
-                {signingOut ? 'Signing out…' : 'Sign out & start a new session'}
-              </motion.button>
             </div>
           </motion.div>
         ) : (
