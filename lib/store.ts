@@ -125,6 +125,15 @@ export const createUser = (data: Omit<PortalUser, 'id' | 'createdAt'>): PortalUs
   return user
 }
 
+// Update an existing user's password hash by email (used by forgot-password flow)
+export const updateUserPasswordByEmail = (email: string, passwordHash: string): boolean => {
+  const user = findUserByEmail(email)
+  if (!user) return false
+  user.passwordHash = passwordHash
+  users.set(user.id, user)
+  return true
+}
+
 // ── Properties ────────────────────────────────────────────────────────────────
 
 export const properties = new Map<string, Property>([
