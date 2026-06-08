@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseClient } from '@/lib/supabase'
+import { findUserByEmail } from '@/lib/store'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,19 @@ export async function POST(request: Request) {
     if (method === 'email') {
       if (!email) {
         return NextResponse.json({ error: 'Email address is required.' }, { status: 400 })
+      }
+
+      // Block sending an OTP if an account already exists for this email — this
+      // route is only used by the registration flow. Forgot-password uses its
+      // own dedicated route at /api/auth/forgot-password/start.
+      if (findUserByEmail(email)) {
+        return NextResponse.json(
+          {
+            error: 'An account with this email already exists. Please sign in or reset your password.',
+            code:  'EMAIL_EXISTS',
+          },
+          { status: 409 },
+        )
       }
 
       let supabase
