@@ -1,157 +1,144 @@
-# Changes Summary — OTP Fix + Service Navigation Rework
+# Changes Summary
+
+> Two batches of work — keep the OTP + service-navigation rework from the previous PR, and add the new DIY Inventory Report page on top.
 
 Branch: `dev` → PR to `main`
 
-## 1. Detected Auth Setup (before changes)
-
-- **NextAuth.js (v4)** with two `CredentialsProvider` entries (`customer-login`, `admin-login`) — see [lib/auth.ts](lib/auth.ts).
-- **In-memory user store** at [lib/store.ts](lib/store.ts) — 9 hardcoded test users (Shubham / Irfan / Adamya × property_manager / tenant / student).
-- **Custom in-memory OTP store** at `lib/otp-store.ts` (now removed) with a `/api/auth/otp/send` route that delivered email via Resend and stubbed SMS.
-- **Supabase JS client** at [lib/supabase.ts](lib/supabase.ts) — used only for `ref_*` lookup tables, not for auth.
-- **Outcome:** two parallel systems (custom OTP for verification, NextAuth for sessions). OTP failed in production whenever `RESEND_API_KEY` was missing, with no built-in retry / dashboard delivery.
-
-## 2. OTP Verification — now uses Supabase Auth
-
-### What changed
-
-- **Email OTP path** ([app/api/auth/otp/send/route.ts](app/api/auth/otp/send/route.ts)) now calls `supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: ... } })`. Supabase handles the code, the email delivery and the rate limiting.
-- **Verification** ([app/api/auth/register/route.ts](app/api/auth/register/route.ts)) now calls `supabase.auth.verifyOtp({ email, token, type: 'email' })`. On success we sign the Supabase session out (we don't need it — NextAuth still manages the portal session) and create the local user.
-- Friendly error mapping for expired / invalid / mismatch codes.
-- The old `lib/otp-store.ts` and the Resend-based OTP delivery have been removed.
-- Returns the actual Supabase error message back to the user when something genuinely goes wrong (rate limit, provider misconfigured) instead of a generic failure.
-
-### Phone OTP — Coming Soon (no SMS provider yet)
-
-- Phone field stays in the registration form but the SMS tile is visibly disabled with a **Soon** badge.
-- Server-side check returns a friendly 503 if anyone tries to bypass.
-- Code path for `signInWithOtp({ phone })` / `verifyOtp({ phone, type: 'sms' })` is in place behind a feature flag — flip `NEXT_PUBLIC_PHONE_OTP_ENABLED=true` to enable.
-
-### Required Supabase Dashboard Steps
-
-1. **Project Settings → API** — copy the project URL and the anon key into Vercel (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
-2. **Authentication → Providers → Email** — enable the Email provider and turn on **Email OTP**. If using a custom SMTP, configure it; otherwise the Supabase-managed sender is used (rate-limited but enough for testing).
-3. **Authentication → URL Configuration** — add `https://3ccore.com`, the production Vercel URL, and the preview wildcard (`https://*.vercel.app` for previews) to the allowed redirect URLs.
-4. (Optional, for phone OTP) **Authentication → Providers → Phone** — connect Twilio / MessageBird / Vonage, then set `NEXT_PUBLIC_PHONE_OTP_ENABLED=true` in Vercel.
-
-### Required Vercel Env Vars
-
-```
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY        (sensitive — backend only)
-NEXT_PUBLIC_SITE_URL             (used in emailRedirectTo)
-NEXT_PUBLIC_PHONE_OTP_ENABLED    (defaults to false — set true when SMS is wired up)
-```
-
 ---
 
-## 3. Service Navigation Rework
+# Batch 2 — DIY Inventory Report (this PR)
 
-### Old 4-tab page — removed from the flow
+## 1. New route — `/services/inventory/diy`
 
-`components/ui/ServiceTabNav.tsx` and `components/forms/BookingForm.tsx` are no longer imported anywhere. Every service page now lands the user directly in the new booking flow.
+The Do-It-Yourself inventory tool a tenant or property manager uses to capture a property's condition themselves. Four-step flow built end-to-end with persistence:
 
-### New shared component
+1. **Property & report details** — report type (from `ref_report_types`), inspection date, inspector name (auto-filled from session), address. "Start Report" creates a draft `inventory_reports` row.
+2. **Rooms & media** — add/reorder/remove rooms, room type (`ref_room_types`), condition (`ref_condition_levels`), notes, plus two media inputs (upload + live camera) and optional items per room (`ref_item_types`).
+3. **Review & analyse** — full edit-in-place view of every room and its captured media. "Generate Report with AI" calls the analyse route. AI is flag-gated (see section 3).
+4. **Download PDF** — server-side jspdf-generated PDF with 3C Core branding, room list, item table, signature blocks, and footer. Saved to the `inventory-reports` bucket when possible.
 
-- **`components/booking/ServiceBookingForm.tsx`** — modal form used by every service. Auto-fills (and locks) the user's role, name, email, and the service type. Reads the role from NextAuth session, falling back to `sessionStorage['3c_user_role']` set by the who-are-you flow. Logged-out users get editable fields; logged-in users see read-only ones.
-- **`components/booking/DirectBookingPage.tsx`** — thin wrapper used by midterm / dispute / deposit pages so they all open the modal on mount.
-- **`app/api/service-bookings/route.ts`** — POST handler that
-  1. resolves `serviceCode`, `portalRole`, `maintenanceType` to lookup ids (`ref_service_types`, `ref_portal_roles`, `ref_maintenance_types`);
-  2. inserts a row into `public.service_bookings`;
-  3. emails `contactus@3ccore.com` via Resend.
+Autosave is on for both:
+- `localStorage` (every change, debounced 600 ms) so anonymous users don't lose work
+- `PATCH /api/inventory/reports` (every change, debounced 1.2 s) when a `reportId` exists
 
-### Per-service routing map
+## 2. API routes added / rewritten
 
-| Service                | Path                              | Behaviour |
-|------------------------|-----------------------------------|-----------|
-| Inventory Management   | `/services/inventory`             | Chooser screen: **Do It Yourself** → `/services/inventory/diy`, **Book an Agent** → opens shared booking form. |
-| Maintenance & Cleaning | `/services/maintenance`           | Opens booking form immediately — first picks **Maintenance Type** (from `ref_maintenance_types`), then reveals the rest of the form. |
-| Midterm Inspection     | `/services/midterm-inspections`   | Opens booking form immediately. |
-| Dispute Resolution     | `/services/dispute-resolution`    | Opens booking form immediately. |
-| Deposit Negotiation    | `/services/deposit-negotiation`   | Opens booking form immediately. Role-gated to PM / Landlord by [app/services/page.tsx](app/services/page.tsx) (unchanged). |
-| Letting Services       | `/services/letting-services`      | New page: lists available properties from `property_lettings` (joined to `properties`) with a per-card **Schedule callback** action and a global **Schedule a Callback** button. Falls back to sample listings when the DB is empty. |
+| Route | Method | Purpose |
+|---|---|---|
+| `/api/inventory/reports` | POST | Create a draft `inventory_reports` row (best-effort: returns a client-side UUID if Supabase is unavailable). |
+| `/api/inventory/reports` | PATCH | Autosave: update `clerk_notes`, `ai_summary`, `pdf_url`, `status_id` (via `ref_report_status` code). |
+| `/api/inventory/rooms` | POST | Upsert a room under a report. Resolves `ref_room_types` / `ref_condition_levels`. |
+| `/api/inventory/rooms` | DELETE | Remove a room by id. |
+| `/api/inventory/items` | POST | Upsert an item under a room. Resolves `ref_item_types` / `ref_condition_levels`. |
+| `/api/inventory/items` | DELETE | Remove an item by id. |
+| `/api/inventory/upload` | POST | Multipart upload — stores in `inventory-media` bucket at `{reportId}/{roomId or itemId}/{filename}`. Inserts `media` row with `entity_type` resolved from `ref_entity_types`, `media_type` from `ref_media_types`, `auto_delete_at = NULL` (inventory media is retained, never auto-deleted). Returns a 7-day signed URL. |
+| `/api/inventory/upload` | DELETE | Remove a previously-uploaded file. |
+| `/api/inventory/analyse` | POST | **Flag-gated stub.** When `NEXT_PUBLIC_AI_ANALYSIS_ENABLED=false` (default) or `ANTHROPIC_API_KEY` missing, returns a stubbed analysis without breaking the flow. When enabled, calls Claude via `lib/anthropic.ts` (model defaults to `claude-sonnet-4-6`, override with `ANTHROPIC_MODEL`). |
+| `/api/inventory/generate-pdf` | POST | Server-side jspdf builder. Header with 3C Core address (Office 818, Pride Park, Derby), meta block, per-room sections with item tables, signature blocks (Landlord/Tenant/Agent), per-page footer with `contactus@3ccore.com` and page numbers. PDF is uploaded to the `inventory-reports` bucket when `reportId` is supplied and `pdf_url` is written back to the report row. Browser receives the PDF as an attachment. |
 
-### Schema additions (migration `021_service_bookings_and_maintenance_types.sql`)
+All routes degrade gracefully when Supabase is unavailable (missing env vars, FK constraints because NextAuth user IDs don't exist in `public.users` yet) — the page keeps working with local UUIDs and `localStorage`.
 
-- `ref_maintenance_types` lookup (gas_safety, eicr, epc, legionella, pat_testing, licensing, cleaning, general_repair, other).
-- `service_bookings` table:
-  - `Booking_Id` uuid PK
-  - `User_id` FK → `users` (nullable for guest bookings)
-  - `service_type_id`, `portal_role_id`, `maintenance_type_id` FKs to the relevant `ref_*` tables
-  - snapshot of user info (`full_name`, `email`, `phone`) so guest bookings still work
-  - `summary`, `service_date`, `call_back_time`, `email_sent`, `notes`, `created_at`
-  - RLS enabled — owners and admins can see their bookings; service role inserts bypass RLS.
+## 3. AI integration — clearly stubbed, ready to wire
 
-**Run this migration in Supabase SQL Editor before the new booking flow is fully wired to the DB.** Until then, the API gracefully degrades — bookings still email but aren't persisted.
+- `lib/anthropic.ts` now exports `AI_ANALYSIS_ENABLED`, `hasAnthropicKey`, `anthropic`, and `CLAUDE_MODEL`.
+- `/api/inventory/analyse` returns `stubbed: true` and `{ "message": "AI analysis is disabled. Set NEXT_PUBLIC_AI_ANALYSIS_ENABLED=true (and ANTHROPIC_API_KEY on the server) to enable Claude-powered reports." }` when the flag is off.
+- DIY page shows an amber warning banner when stubbed, and the PDF is still generated from user-entered data.
 
-### Lookups + types
+### To enable AI later
+1. Add `ANTHROPIC_API_KEY` to Vercel (Production + Preview) — mark as sensitive.
+2. Add `NEXT_PUBLIC_AI_ANALYSIS_ENABLED=true` to Vercel (Production + Preview).
+3. (Optional) Override the model with `ANTHROPIC_MODEL` (e.g. `claude-opus-4-7` once available).
+4. Redeploy. The `/api/inventory/analyse` route will start calling Claude.
 
-- Added `ref_maintenance_types` to:
-  - [lib/lookups.ts](lib/lookups.ts) (LookupTable union, `getMaintenanceTypes`)
-  - [app/api/lookups/route.ts](app/api/lookups/route.ts) (`VALID_TABLES` allow-list)
-  - [types/database.ts](types/database.ts) (`RefMaintenanceType`, `Database['public']['Tables']`)
-- Added `service_bookings` table type and `DbServiceBooking` interface.
+The `TODO` comment in `app/api/inventory/analyse/route.ts` flags the parallelisation, persistence-to-rooms, and model-bump considerations for the next iteration.
 
----
+## 4. New component — `components/inventory/CameraCapture.tsx`
 
-## 4. Files Touched
+Live `getUserMedia` camera modal with:
+- Permission request flow (idle → requesting → granted)
+- Front/back camera switch (`facingMode`)
+- Capture → preview → retake / use-photo
+- Graceful fallback: if permission is denied or no camera is available, swaps to a `<input type="file" capture="environment">` so the user can still proceed
+- All controls labelled, no emojis, Lucide icons throughout
+- Body scroll lock when open; cleans up the `MediaStream` on close
+
+## 5. Files touched
 
 ### Added
-- `app/api/lettings/available/route.ts`
-- `app/api/service-bookings/route.ts`
-- `components/booking/ServiceBookingForm.tsx`
-- `components/booking/DirectBookingPage.tsx`
-- `supabase/migrations/021_service_bookings_and_maintenance_types.sql`
-- `CHANGES_SUMMARY.md` (this file)
+- `app/api/inventory/reports/route.ts`
+- `app/api/inventory/rooms/route.ts`
+- `app/api/inventory/items/route.ts`
+- `app/api/inventory/upload/route.ts`
+- `components/inventory/CameraCapture.tsx`
 
-### Updated
-- `app/api/auth/otp/send/route.ts` — switched to Supabase Auth.
-- `app/api/auth/register/route.ts` — verifies via Supabase Auth.
-- `app/api/lookups/route.ts` — added `ref_maintenance_types`.
-- `components/portal/RegisterForm.tsx` — phone OTP marked Coming Soon, gated by feature flag.
-- `app/services/inventory/page.tsx` — replaced 5-tab page with DIY / Book Agent chooser.
-- `app/services/maintenance/page.tsx` — replaced 4-tab page with direct booking + maintenance type selector.
-- `app/services/midterm-inspections/page.tsx` — direct booking via `DirectBookingPage`.
-- `app/services/dispute-resolution/page.tsx` — direct booking.
-- `app/services/deposit-negotiation/page.tsx` — direct booking.
-- `app/services/letting-services/page.tsx` — listings + callback form.
-- `lib/lookups.ts` — added `ref_maintenance_types`.
-- `types/database.ts` — added `RefMaintenanceType`, `DbServiceBooking`, table entries.
-- `.env.local.example` — documented `NEXT_PUBLIC_PHONE_OTP_ENABLED` and noted Supabase OTP requirement.
+### Rewritten
+- `app/services/inventory/diy/page.tsx` — full 4-step rebuild with proper persistence + camera
+- `app/api/inventory/analyse/route.ts` — added flag gate + stub
+- `app/api/inventory/generate-pdf/route.ts` — real jspdf builder replacing the 501 stub
+- `lib/anthropic.ts` — added feature flag + model export
+- `.env.local.example` — documented `NEXT_PUBLIC_AI_ANALYSIS_ENABLED` and `ANTHROPIC_MODEL`
 
-### Removed
-- `lib/otp-store.ts` — replaced by Supabase Auth.
+## 6. Acceptance checklist
 
----
+- [x] `/services/inventory/diy` builds and renders in the existing amber/gold design
+- [x] Property & report detail step creates an `inventory_reports` draft (best-effort)
+- [x] Add / edit / reorder / collapse rooms; room type + condition driven by lookups
+- [x] Upload images & videos (multi-select) AND live camera capture (with fallback)
+- [x] Media saved to `inventory-media` bucket + `media` rows (`auto_delete_at = NULL`)
+- [x] Optional items per room with their own media + condition
+- [x] Review screen with full edit capability (room summary, item descriptions, notes)
+- [x] `/api/inventory/analyse` exists, flag-gated, doesn't break the flow when off
+- [x] `lib/anthropic.ts` exposes the flag + model — documented for wiring later
+- [x] `/api/inventory/generate-pdf` produces a real PDF from entered data, saved to storage
+- [x] Autosave (local + server) + resume from `localStorage` works
+- [x] Anonymous-user prompt to create an account before final save
+- [x] `npm run build` passes; committed to dev; PR opened to main
 
-## 5. Acceptance Checklist
+## 7. Required Supabase Dashboard / env steps
 
-### Part A — OTP
-- [x] Email OTP standardised on Supabase Auth
-- [x] Resend-based custom OTP store removed
-- [x] Phone field present, marked Coming Soon, signup not blocked
-- [x] Feature flag (`NEXT_PUBLIC_PHONE_OTP_ENABLED`) ready for when SMS lands
-- [x] Specific Supabase error messages surfaced to the user
-- [x] Required env vars + dashboard steps documented (this file)
+(in addition to the previous batch — see section in batch 1 below)
 
-### Part B — Service navigation
-- [x] Old 4-tab service page never appears after selecting a service
-- [x] Single shared booking form with role / name / service type auto-filled and locked
-- [x] Inventory shows DIY vs Book-an-Agent
-- [x] Maintenance asks maintenance type first, then reveals booking fields
-- [x] Midterm / Dispute / Deposit go straight to the form
-- [x] Letting shows available listings + Schedule a Callback button
-- [x] Submissions save to DB AND email `contactus@3ccore.com`
-- [x] Option lists come from `ref_*` lookups
-- [x] No emojis introduced; Lucide icons; amber/gold design unchanged
-- [x] `npm run build` passes (47 routes generated, no TS errors)
+- Migration `020_finalised_schema_with_lookups.sql` must already be run (creates `inventory_reports`, `inventory_rooms`, `inventory_items`, `media`, and the `inventory-media` / `inventory-reports` buckets).
+- For AI: add `ANTHROPIC_API_KEY` + `NEXT_PUBLIC_AI_ANALYSIS_ENABLED=true` to Vercel.
+- No new SQL migration needed for the DIY page itself — it reuses existing tables.
+
+## 8. Known limitations / next steps
+
+- **NextAuth ↔ Supabase user mapping.** `lib/store.ts` uses synthetic user IDs (`user-shubham-pm`) that don't exist in `public.users` — so the report's `User_Id` FK is currently inserted as `null`. The page continues to work; replace `lib/store.ts` with the Supabase Auth migration (BLOCKER 2) to wire ownership through.
+- **Bucket RLS.** Uploads use the service-role key (server-only). Browser-side direct uploads will need a Supabase Auth session before they can satisfy the `inventory-media` bucket policy.
+- **Video uploads** save and store fine but aren't sent to the Claude analyse call (Claude doesn't accept videos through this prompt).
 
 ---
 
-## 6. Manual Steps Before Going Live
+# Batch 1 — OTP fix + Service Navigation Rework (already on this branch)
 
-1. **Run `supabase/migrations/021_service_bookings_and_maintenance_types.sql` in Supabase SQL Editor.**
-2. Confirm Supabase Auth → Providers → Email → **Email OTP enabled**.
-3. Add the redirect URLs in Supabase Auth → URL Configuration (production + Vercel preview).
-4. Verify the Vercel env vars listed in section 2.
-5. When ready for SMS, connect Twilio (or similar) in Supabase, then set `NEXT_PUBLIC_PHONE_OTP_ENABLED=true` in Vercel.
+(Kept for context — see the file history; no new work needed here.)
+
+- Email OTP standardised on Supabase Auth (`signInWithOtp` / `verifyOtp({ type: 'email' })`).
+- Phone OTP gated behind `NEXT_PUBLIC_PHONE_OTP_ENABLED` (default false), SMS tile shows "Soon".
+- Custom `lib/otp-store.ts` removed.
+- Old Description / FAQs / Prices / Book Now 4-tab page removed from every service.
+- New shared `ServiceBookingForm` modal with auto-filled role / name / service.
+- `/api/service-bookings` persists to `service_bookings` and emails `contactus@3ccore.com`.
+- Migration `021_service_bookings_and_maintenance_types.sql` adds `ref_maintenance_types` + `service_bookings`.
+
+## Required Supabase Dashboard steps (batch 1)
+
+1. Run `supabase/migrations/021_service_bookings_and_maintenance_types.sql` in SQL Editor.
+2. Supabase → Authentication → Providers → Email → enable Email OTP.
+3. Supabase → Authentication → URL Configuration → add production + Vercel preview URLs.
+
+## Required Vercel env vars (batch 1 + 2)
+
+| Key | Notes |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | |
+| `SUPABASE_SERVICE_ROLE_KEY` | Sensitive — backend only |
+| `NEXT_PUBLIC_SITE_URL` | Used in `emailRedirectTo` |
+| `NEXT_PUBLIC_PHONE_OTP_ENABLED` | Default `false` |
+| `RESEND_API_KEY` | For booking emails |
+| `RESEND_FROM_EMAIL` | Optional sender override |
+| `ANTHROPIC_API_KEY` | Sensitive — only required when enabling AI |
+| `ANTHROPIC_MODEL` | Optional — defaults to `claude-sonnet-4-6` |
+| `NEXT_PUBLIC_AI_ANALYSIS_ENABLED` | Default `false` |
