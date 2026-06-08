@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { findUserByEmail, createUser, hash } from '@/lib/store'
+import { createUser, hash } from '@/lib/store'
 import { getSupabaseClient } from '@/lib/supabase'
+import { emailExists } from '@/lib/email-exists'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
       /* ignore — we just don't want the Supabase session sticking around */
     }
 
-    if (findUserByEmail(data.email)) {
+    if (await emailExists(data.email)) {
       return NextResponse.json(
         {
           success: false,

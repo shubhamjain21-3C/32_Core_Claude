@@ -31,7 +31,8 @@ export default withAuth(
           pathname === '/portal' ||
           pathname === '/portal/login' ||
           pathname === '/portal/register' ||
-          pathname === '/portal/admin-login'
+          pathname === '/portal/admin-login' ||
+          pathname === '/portal/forgot-password'
         ) return true
         // Everything else requires a valid token
         return !!token
