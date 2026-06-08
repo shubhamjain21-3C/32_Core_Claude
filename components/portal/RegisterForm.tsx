@@ -83,6 +83,9 @@ export function RegisterForm() {
   })
   const [showPw, setShowPw]       = useState(false)
   const [step1Error, setStep1Error] = useState('')
+  // When true, the email-already-exists banner shows login + reset links.
+  const [emailExists, setEmailExists] = useState(false)
+  const [checking, setChecking] = useState(false)
 
   // ── Step 2 state ────────────────────────────────────────────────────────────
   const [otpMethod, setOtpMethod]       = useState<OtpMethod>('email')
@@ -119,9 +122,11 @@ export function RegisterForm() {
 
   // ── Step 1 → Step 2 ─────────────────────────────────────────────────────────
 
-  function handleContinue(e: React.FormEvent) {
+  async function handleContinue(e: React.FormEvent) {
     e.preventDefault()
     setStep1Error('')
+    setEmailExists(false)
+
     if (!form.firstName.trim() || !form.lastName.trim()) {
       setStep1Error('First name and last name are required.')
       return
@@ -138,6 +143,28 @@ export function RegisterForm() {
       setStep1Error('Please select your account type.')
       return
     }
+
+    // Check for an existing account before we send an OTP — saves the user
+    // from going through OTP entry just to discover their email is taken.
+    setChecking(true)
+    try {
+      const res = await fetch('/api/auth/check-email', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: form.email }),
+      })
+      const data = await res.json()
+      if (data?.exists) {
+        setEmailExists(true)
+        return
+      }
+    } catch {
+      // Network errors shouldn't block the flow — the OTP send route + the
+      // final register endpoint both guard against duplicates as a fallback.
+    } finally {
+      setChecking(false)
+    }
+
     // Go to step 2
     setStep(2)
     setOtpMethod('email')
@@ -145,6 +172,12 @@ export function RegisterForm() {
     setCodeDigits(Array(6).fill(''))
     setStep2Error('')
     setResendCountdown(0)
+  }
+
+  // Clear the email-exists banner when the user edits the email field
+  function updateEmail(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm(f => ({ ...f, email: e.target.value }))
+    if (emailExists) setEmailExists(false)
   }
 
   // ── Send OTP ────────────────────────────────────────────────────────────────
@@ -165,6 +198,13 @@ export function RegisterForm() {
       })
       const data = await res.json()
       if (!res.ok) {
+        // Defence in depth: server may also reject a duplicate email here.
+        if (data?.code === 'EMAIL_EXISTS') {
+          setOtpState('idle')
+          setStep(1)
+          setEmailExists(true)
+          return
+        }
         setStep2Error(data.error || 'Failed to send code. Please try again.')
         setOtpState('idle')
         return
@@ -540,8 +580,31 @@ export function RegisterForm() {
       {/* Email */}
       <div>
         <label className={labelCls}>Email Address *</label>
-        <input type="email" value={form.email} onChange={setField('email')} required placeholder="your@email.com" className={inputCls} />
+        <input type="email" value={form.email} onChange={updateEmail} required placeholder="your@email.com" className={inputCls} />
       </div>
+
+      {/* Email-already-exists banner */}
+      {emailExists && (
+        <div
+          className="rounded-lg px-3 py-3 text-xs text-[#2C1F14]"
+          style={{ background: 'rgba(212,134,10,0.08)', border: '1px solid rgba(212,134,10,0.35)' }}
+        >
+          <p className="font-semibold text-[#8B3A2A] mb-1">
+            An account with this email already exists.
+          </p>
+          <p className="leading-relaxed">
+            Please{' '}
+            <a href="/portal/login" className="font-semibold text-[#D4860A] hover:underline">
+              sign in
+            </a>
+            {' '}to your existing account, or{' '}
+            <a href="/portal/forgot-password" className="font-semibold text-[#D4860A] hover:underline">
+              reset your password
+            </a>
+            {' '}if you&apos;ve forgotten it.
+          </p>
+        </div>
+      )}
 
       {/* Phone */}
       <div>
@@ -582,12 +645,13 @@ export function RegisterForm() {
 
       <button
         type="submit"
-        className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-colors"
+        disabled={checking || emailExists}
+        className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         style={{ background: '#D4860A' }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#F0A830' }}
-        onMouseLeave={e => { e.currentTarget.style.background = '#D4860A' }}
+        onMouseEnter={e => { if (!checking && !emailExists) e.currentTarget.style.background = '#F0A830' }}
+        onMouseLeave={e => { if (!checking && !emailExists) e.currentTarget.style.background = '#D4860A' }}
       >
-        Continue to Verification →
+        {checking ? 'Checking…' : 'Continue to Verification →'}
       </button>
     </form>
   )

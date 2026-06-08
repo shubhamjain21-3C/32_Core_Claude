@@ -91,9 +91,14 @@ function CustomerLoginForm({ returnUrl }: { returnUrl?: string }) {
       </div>
 
       <div className="flex justify-end">
-        <Link href="/portal/forgot-password" className="text-xs text-[#8B3A2A] hover:text-[#D4860A] transition-colors">
+        {/* Plain <a> so browser handles the navigation — avoids any
+            client-routing edge case and stale-bundle cache problem. */}
+        <a
+          href="/portal/forgot-password"
+          className="text-xs text-[#8B3A2A] hover:text-[#D4860A] transition-colors cursor-pointer"
+        >
           Forgot password?
-        </Link>
+        </a>
       </div>
 
       {error && <p className={errBoxCls}>{error}</p>}

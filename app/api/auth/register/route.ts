@@ -66,7 +66,11 @@ export async function POST(request: Request) {
 
     if (findUserByEmail(data.email)) {
       return NextResponse.json(
-        { success: false, message: 'An account with this email already exists.' },
+        {
+          success: false,
+          code:    'EMAIL_EXISTS',
+          message: 'An account with this email already exists. Please sign in or reset your password.',
+        },
         { status: 409 },
       )
     }
