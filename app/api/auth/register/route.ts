@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createUser, hash } from '@/lib/store'
 import { getSupabaseClient } from '@/lib/supabase'
 import { emailExists } from '@/lib/email-exists'
+import { writeCustomerProfile } from '@/lib/users-db'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,19 +77,36 @@ export async function POST(request: Request) {
       )
     }
 
-    const fullName = [data.firstName, data.middleName, data.lastName].filter(Boolean).join(' ')
+    const fullName     = [data.firstName, data.middleName, data.lastName].filter(Boolean).join(' ')
+    const passwordHash = hash(data.password)
 
+    // 1) In-memory store — kept for the current process so the same Vercel
+    //    instance can serve the auto-signin straight after register.
     createUser({
       name:         fullName,
       email:        data.email,
-      passwordHash: hash(data.password),
+      passwordHash,
       role:         'customer',
       portalRole:   data.portalRole,
       phone:        data.phone || undefined,
       company:      data.company || undefined,
     })
 
-    return NextResponse.json({ success: true })
+    // 2) Persistent — write the full profile + password_hash onto
+    //    public.users so logins work across serverless instances and
+    //    forgot-password can verify the user exists.
+    const persistedToDb = await writeCustomerProfile({
+      email:        data.email,
+      firstName:    data.firstName,
+      middleName:   data.middleName,
+      lastName:     data.lastName,
+      phone:        data.phone,
+      company:      data.company,
+      passwordHash,
+      portalRoleCode: data.portalRole,
+    })
+
+    return NextResponse.json({ success: true, persistedToDb })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, errors: error.errors }, { status: 400 })
