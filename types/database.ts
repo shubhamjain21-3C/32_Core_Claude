@@ -32,6 +32,7 @@ export type RefMediaType       = LookupRow
 export type RefServiceType     = LookupRow
 export type RefServiceStatus   = LookupRow
 export type RefChatRole        = LookupRow
+export type RefMaintenanceType = LookupRow
 
 // ── Core table row types ──────────────────────────────────────────────────────
 
@@ -166,6 +167,23 @@ export interface DbChatConversation {
   created_at: string
 }
 
+export interface DbServiceBooking {
+  Booking_Id:           string        // uuid PK
+  User_id:              string | null // FK → users (nullable for guests)
+  service_type_id:      number | null // FK → ref_service_types
+  portal_role_id:       number | null // FK → ref_portal_roles
+  full_name:            string
+  email:                string
+  phone:                string | null
+  maintenance_type_id:  number | null // FK → ref_maintenance_types
+  summary:              string
+  service_date:         string        // date
+  call_back_time:       string
+  email_sent:           boolean
+  notes:                string | null
+  created_at:           string
+}
+
 export interface DbChatMessage {
   id:               string        // uuid PK
   conversation_id:  string        // FK → chat_conversations
@@ -192,9 +210,10 @@ export interface Database {
       ref_item_types:       { Row: RefItemType;       Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
       ref_entity_types:     { Row: RefEntityType;     Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
       ref_media_types:      { Row: RefMediaType;      Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
-      ref_service_types:    { Row: RefServiceType;    Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
-      ref_service_status:   { Row: RefServiceStatus;  Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
-      ref_chat_roles:       { Row: RefChatRole;       Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
+      ref_service_types:      { Row: RefServiceType;     Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
+      ref_service_status:     { Row: RefServiceStatus;   Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
+      ref_chat_roles:         { Row: RefChatRole;        Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
+      ref_maintenance_types:  { Row: RefMaintenanceType; Insert: Partial<LookupRow>; Update: Partial<LookupRow> }
       users:                { Row: DbUser;             Insert: Partial<DbUser>;    Update: Partial<DbUser>    }
       properties:           { Row: DbProperty;         Insert: Omit<DbProperty, 'Property_Id'|'created_at'|'updated_at'>; Update: Partial<DbProperty> }
       property_tenancies:   { Row: DbPropertyTenancy;  Insert: Omit<DbPropertyTenancy, 'Tenant_id'|'created_at'>;        Update: Partial<DbPropertyTenancy> }
@@ -204,6 +223,7 @@ export interface Database {
       inventory_items:      { Row: DbInventoryItem;    Insert: Omit<DbInventoryItem, 'InventoryItem_id'>;                 Update: Partial<DbInventoryItem> }
       media:                { Row: DbMedia;             Insert: Omit<DbMedia, 'Media_id'|'created_at'>;                   Update: Partial<DbMedia> }
       services:             { Row: DbService;           Insert: Omit<DbService, 'Service_Id'|'created_at'>;               Update: Partial<DbService> }
+      service_bookings:     { Row: DbServiceBooking;    Insert: Omit<DbServiceBooking, 'Booking_Id'|'created_at'|'email_sent'>; Update: Partial<DbServiceBooking> }
       chat_conversations:   { Row: DbChatConversation;  Insert: Omit<DbChatConversation, 'id'|'created_at'>;              Update: Partial<DbChatConversation> }
       chat_messages:        { Row: DbChatMessage;       Insert: Omit<DbChatMessage, 'id'|'created_at'>;                   Update: Partial<DbChatMessage> }
     }

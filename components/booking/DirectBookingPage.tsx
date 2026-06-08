@@ -2,19 +2,27 @@
 import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { ServicePageHeader } from '@/components/layout/ServicePageHeader'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
-import { ServiceBookingForm } from '@/components/booking/ServiceBookingForm'
-import { ArrowLeft } from 'lucide-react'
+import { ServiceBookingForm, type ServiceCode } from '@/components/booking/ServiceBookingForm'
 
-function MaintenancePageContent() {
+interface Props {
+  serviceCode:    ServiceCode
+  title:          string
+  tagline:        string
+  bookingHeading: string
+  bookingSubheading?: string
+  submitLabel?:   string
+}
+
+function DirectBookingPageInner({ serviceCode, title, tagline, bookingHeading, bookingSubheading, submitLabel }: Props) {
   const router = useRouter()
   const params = useSearchParams()
   const role = params.get('role') ?? (typeof window !== 'undefined' ? sessionStorage.getItem('3c_user_role') : null) ?? ''
   const backHref = role ? `/services?role=${role}` : '/services'
 
-  // The maintenance flow opens straight into the booking form — the form
-  // itself asks for the maintenance type first before revealing the rest.
+  // Open the form immediately — per spec these services go straight to the form.
   const [open, setOpen] = useState(true)
 
   useEffect(() => {
@@ -36,8 +44,8 @@ function MaintenancePageContent() {
       <div className="relative px-6 py-10 text-center overflow-hidden" style={{ borderBottom: '1px solid rgba(212,134,10,0.2)' }}>
         <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "url('/assets/images/homepage_3c.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative">
-          <h1 className="font-heading font-bold text-[#2C1F14] text-3xl sm:text-4xl">Maintenance &amp; Cleaning</h1>
-          <p className="mt-2 text-[#8B3A2A] text-base sm:text-lg">Compliance checks, repairs, and cleaning — arranged with trusted contractors</p>
+          <h1 className="font-heading font-bold text-[#2C1F14] text-3xl sm:text-4xl">{title}</h1>
+          <p className="mt-2 text-[#8B3A2A] text-base sm:text-lg">{tagline}</p>
         </div>
       </div>
 
@@ -50,8 +58,7 @@ function MaintenancePageContent() {
         </Link>
 
         <p className="text-sm text-[#2C1F14] leading-relaxed mb-6 max-w-xl mx-auto">
-          Pick the type of maintenance you need below — gas safety, EICR, EPC, cleaning, repairs and more —
-          then leave us a quick summary and a call-back time.
+          Tell us when you&apos;d like the service and the best time for a call-back — our team will confirm within 24 hours.
         </p>
 
         {!open && (
@@ -63,7 +70,7 @@ function MaintenancePageContent() {
             onMouseEnter={e => { e.currentTarget.style.background = '#F0A830' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#D4860A' }}
           >
-            Open Maintenance Request
+            Open Booking Form
           </button>
         )}
       </div>
@@ -71,12 +78,11 @@ function MaintenancePageContent() {
       <ServiceBookingForm
         open={open}
         onClose={handleClose}
-        serviceCode="maintenance"
-        serviceLabel="Maintenance &amp; Cleaning"
-        requireMaintenanceType
-        heading="Maintenance Request"
-        subheading="Pick the maintenance type to continue — we use it to assign the right contractor."
-        submitLabel="Submit Request"
+        serviceCode={serviceCode}
+        serviceLabel={title}
+        heading={bookingHeading}
+        subheading={bookingSubheading}
+        submitLabel={submitLabel}
       />
 
       <ComingSoonWidget />
@@ -84,10 +90,10 @@ function MaintenancePageContent() {
   )
 }
 
-export default function MaintenancePage() {
+export function DirectBookingPage(props: Props) {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#FFF8EE]" />}>
-      <MaintenancePageContent />
+      <DirectBookingPageInner {...props} />
     </Suspense>
   )
 }
