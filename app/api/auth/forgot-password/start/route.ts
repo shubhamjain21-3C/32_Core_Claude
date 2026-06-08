@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { findUserByEmail } from '@/lib/store'
 import { getSupabaseClient } from '@/lib/supabase'
+import { emailExists } from '@/lib/email-exists'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,12 +23,14 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { email } = schema.parse(body)
 
-    const user = findUserByEmail(email)
+    // Look up in BOTH places (in-memory seeded accounts + persistent
+    // Supabase public.users) so newly-registered customers can reset too.
+    const hasAccount = await emailExists(email)
 
     // Generic success response — don't reveal whether the email is registered.
     const responseOk = NextResponse.json({ success: true, masked: maskEmail(email) })
 
-    if (!user) return responseOk
+    if (!hasAccount) return responseOk
 
     let supabase
     try {

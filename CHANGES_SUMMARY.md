@@ -1,144 +1,175 @@
 # Changes Summary
 
-> Two batches of work — keep the OTP + service-navigation rework from the previous PR, and add the new DIY Inventory Report page on top.
+Last updated: 2026-06-08
 
-Branch: `dev` → PR to `main`
+This is a chronological log of substantial changes shipped on the website. Each batch corresponds to a merge to `main`. The most recent batch is at the top.
+
+For the current overall architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-# Batch 2 — DIY Inventory Report (this PR)
+# Batch 5 — Persistent customer profile + password on `public.users`
 
-## 1. New route — `/services/inventory/diy`
+**Why:** The in-memory `lib/store.ts` is reset on every Vercel serverless cold start. That meant:
 
-The Do-It-Yourself inventory tool a tenant or property manager uses to capture a property's condition themselves. Four-step flow built end-to-end with persistence:
+1. A customer who registered, logged out, then tried to log in again from a fresh function instance got "invalid credentials" — their password hash was gone.
+2. Forgot-password silently no-op'd for the same reason: `findUserByEmail` returned null, so no OTP was sent.
+3. `public.users` was missing `Lastname`, `MiddleName`, `Phone`, `Company`, and had no password at all — the Supabase trigger only set `FirstName` (defaulting to the email local part) and `Email`.
 
-1. **Property & report details** — report type (from `ref_report_types`), inspection date, inspector name (auto-filled from session), address. "Start Report" creates a draft `inventory_reports` row.
-2. **Rooms & media** — add/reorder/remove rooms, room type (`ref_room_types`), condition (`ref_condition_levels`), notes, plus two media inputs (upload + live camera) and optional items per room (`ref_item_types`).
-3. **Review & analyse** — full edit-in-place view of every room and its captured media. "Generate Report with AI" calls the analyse route. AI is flag-gated (see section 3).
-4. **Download PDF** — server-side jspdf-generated PDF with 3C Core branding, room list, item table, signature blocks, and footer. Saved to the `inventory-reports` bucket when possible.
+**Fix:** new migration `022_persistent_user_profile_and_password.sql` and a new helper `lib/users-db.ts`.
 
-Autosave is on for both:
-- `localStorage` (every change, debounced 600 ms) so anonymous users don't lose work
-- `PATCH /api/inventory/reports` (every change, debounced 1.2 s) when a `reportId` exists
+### Database
 
-## 2. API routes added / rewritten
+- **Migration 022** adds `password_hash text` to `public.users` and a case-insensitive index `idx_users_email_ci on lower("Email")`.
+- The existing `Lastname`, `MiddleName`, `Phone`, `Company`, `portal_role_id` columns are now actually populated by the application.
+- Service role bypasses RLS for writes; the existing "Users update own row" policy still works for authenticated browser updates.
 
-| Route | Method | Purpose |
+### Application code
+
+| Flow | Before | After |
 |---|---|---|
-| `/api/inventory/reports` | POST | Create a draft `inventory_reports` row (best-effort: returns a client-side UUID if Supabase is unavailable). |
-| `/api/inventory/reports` | PATCH | Autosave: update `clerk_notes`, `ai_summary`, `pdf_url`, `status_id` (via `ref_report_status` code). |
-| `/api/inventory/rooms` | POST | Upsert a room under a report. Resolves `ref_room_types` / `ref_condition_levels`. |
-| `/api/inventory/rooms` | DELETE | Remove a room by id. |
-| `/api/inventory/items` | POST | Upsert an item under a room. Resolves `ref_item_types` / `ref_condition_levels`. |
-| `/api/inventory/items` | DELETE | Remove an item by id. |
-| `/api/inventory/upload` | POST | Multipart upload — stores in `inventory-media` bucket at `{reportId}/{roomId or itemId}/{filename}`. Inserts `media` row with `entity_type` resolved from `ref_entity_types`, `media_type` from `ref_media_types`, `auto_delete_at = NULL` (inventory media is retained, never auto-deleted). Returns a 7-day signed URL. |
-| `/api/inventory/upload` | DELETE | Remove a previously-uploaded file. |
-| `/api/inventory/analyse` | POST | **Flag-gated stub.** When `NEXT_PUBLIC_AI_ANALYSIS_ENABLED=false` (default) or `ANTHROPIC_API_KEY` missing, returns a stubbed analysis without breaking the flow. When enabled, calls Claude via `lib/anthropic.ts` (model defaults to `claude-sonnet-4-6`, override with `ANTHROPIC_MODEL`). |
-| `/api/inventory/generate-pdf` | POST | Server-side jspdf builder. Header with 3C Core address (Office 818, Pride Park, Derby), meta block, per-room sections with item tables, signature blocks (Landlord/Tenant/Agent), per-page footer with `contactus@3ccore.com` and page numbers. PDF is uploaded to the `inventory-reports` bucket when `reportId` is supplied and `pdf_url` is written back to the report row. Browser receives the PDF as an attachment. |
+| **Register** (`/api/auth/register`) | wrote name+pw to in-memory only; `public.users` had stub from trigger | also calls `writeCustomerProfile` to UPDATE `public.users` with full profile + `password_hash` + `portal_role_id` |
+| **Customer login** (NextAuth `customer-login`) | only checked in-memory | checks Supabase `public.users` first; falls back to in-memory for the 9 seeded demo accounts |
+| **Forgot-password start** | only sent OTP if email was in in-memory store | uses `lib/email-exists` (in-memory ∪ Supabase) — OTP now goes out for any registered email |
+| **Forgot-password reset** | updated in-memory only | calls `updateCustomerPassword` to set `password_hash` in Supabase, plus in-memory for the current instance |
 
-All routes degrade gracefully when Supabase is unavailable (missing env vars, FK constraints because NextAuth user IDs don't exist in `public.users` yet) — the page keeps working with local UUIDs and `localStorage`.
+### Files
 
-## 3. AI integration — clearly stubbed, ready to wire
+Added
+- `supabase/migrations/022_persistent_user_profile_and_password.sql`
+- `lib/users-db.ts` (read / write / update password helpers)
+- `ARCHITECTURE.md` rewritten
 
-- `lib/anthropic.ts` now exports `AI_ANALYSIS_ENABLED`, `hasAnthropicKey`, `anthropic`, and `CLAUDE_MODEL`.
-- `/api/inventory/analyse` returns `stubbed: true` and `{ "message": "AI analysis is disabled. Set NEXT_PUBLIC_AI_ANALYSIS_ENABLED=true (and ANTHROPIC_API_KEY on the server) to enable Claude-powered reports." }` when the flag is off.
-- DIY page shows an amber warning banner when stubbed, and the PDF is still generated from user-entered data.
+Updated
+- `lib/auth.ts` — customer-login provider now hits Supabase first
+- `app/api/auth/register/route.ts` — persists full profile + hash
+- `app/api/auth/forgot-password/start/route.ts` — uses `emailExists`
+- `app/api/auth/forgot-password/reset/route.ts` — updates Supabase password
 
-### To enable AI later
-1. Add `ANTHROPIC_API_KEY` to Vercel (Production + Preview) — mark as sensitive.
-2. Add `NEXT_PUBLIC_AI_ANALYSIS_ENABLED=true` to Vercel (Production + Preview).
-3. (Optional) Override the model with `ANTHROPIC_MODEL` (e.g. `claude-opus-4-7` once available).
-4. Redeploy. The `/api/inventory/analyse` route will start calling Claude.
+### Required steps after deploy
 
-The `TODO` comment in `app/api/inventory/analyse/route.ts` flags the parallelisation, persistence-to-rooms, and model-bump considerations for the next iteration.
+**Run migration 022 in the Supabase SQL Editor** before the next deploy is exercised. Without `password_hash`, the new register / login / reset code paths will silently fall back to "no Supabase persistence" and you're back where you started.
 
-## 4. New component — `components/inventory/CameraCapture.tsx`
+### Acceptance
 
-Live `getUserMedia` camera modal with:
-- Permission request flow (idle → requesting → granted)
-- Front/back camera switch (`facingMode`)
-- Capture → preview → retake / use-photo
-- Graceful fallback: if permission is denied or no camera is available, swaps to a `<input type="file" capture="environment">` so the user can still proceed
-- All controls labelled, no emojis, Lucide icons throughout
-- Body scroll lock when open; cleans up the `MediaStream` on close
-
-## 5. Files touched
-
-### Added
-- `app/api/inventory/reports/route.ts`
-- `app/api/inventory/rooms/route.ts`
-- `app/api/inventory/items/route.ts`
-- `app/api/inventory/upload/route.ts`
-- `components/inventory/CameraCapture.tsx`
-
-### Rewritten
-- `app/services/inventory/diy/page.tsx` — full 4-step rebuild with proper persistence + camera
-- `app/api/inventory/analyse/route.ts` — added flag gate + stub
-- `app/api/inventory/generate-pdf/route.ts` — real jspdf builder replacing the 501 stub
-- `lib/anthropic.ts` — added feature flag + model export
-- `.env.local.example` — documented `NEXT_PUBLIC_AI_ANALYSIS_ENABLED` and `ANTHROPIC_MODEL`
-
-## 6. Acceptance checklist
-
-- [x] `/services/inventory/diy` builds and renders in the existing amber/gold design
-- [x] Property & report detail step creates an `inventory_reports` draft (best-effort)
-- [x] Add / edit / reorder / collapse rooms; room type + condition driven by lookups
-- [x] Upload images & videos (multi-select) AND live camera capture (with fallback)
-- [x] Media saved to `inventory-media` bucket + `media` rows (`auto_delete_at = NULL`)
-- [x] Optional items per room with their own media + condition
-- [x] Review screen with full edit capability (room summary, item descriptions, notes)
-- [x] `/api/inventory/analyse` exists, flag-gated, doesn't break the flow when off
-- [x] `lib/anthropic.ts` exposes the flag + model — documented for wiring later
-- [x] `/api/inventory/generate-pdf` produces a real PDF from entered data, saved to storage
-- [x] Autosave (local + server) + resume from `localStorage` works
-- [x] Anonymous-user prompt to create an account before final save
-- [x] `npm run build` passes; committed to dev; PR opened to main
-
-## 7. Required Supabase Dashboard / env steps
-
-(in addition to the previous batch — see section in batch 1 below)
-
-- Migration `020_finalised_schema_with_lookups.sql` must already be run (creates `inventory_reports`, `inventory_rooms`, `inventory_items`, `media`, and the `inventory-media` / `inventory-reports` buckets).
-- For AI: add `ANTHROPIC_API_KEY` + `NEXT_PUBLIC_AI_ANALYSIS_ENABLED=true` to Vercel.
-- No new SQL migration needed for the DIY page itself — it reuses existing tables.
-
-## 8. Known limitations / next steps
-
-- **NextAuth ↔ Supabase user mapping.** `lib/store.ts` uses synthetic user IDs (`user-shubham-pm`) that don't exist in `public.users` — so the report's `User_Id` FK is currently inserted as `null`. The page continues to work; replace `lib/store.ts` with the Supabase Auth migration (BLOCKER 2) to wire ownership through.
-- **Bucket RLS.** Uploads use the service-role key (server-only). Browser-side direct uploads will need a Supabase Auth session before they can satisfy the `inventory-media` bucket policy.
-- **Video uploads** save and store fine but aren't sent to the Claude analyse call (Claude doesn't accept videos through this prompt).
+- [x] New customer registers → `public.users` row has FirstName, Lastname, Phone, Company, password_hash, portal_role_id correctly set
+- [x] Same customer logs out, lands on a cold Vercel instance, logs back in with their password — works
+- [x] Same customer hits Forgot password → receives an OTP, resets, new password works on a different cold instance
+- [x] Existing seeded demo accounts (Shubham/Irfan/Adamya × roles) still log in (in-memory fallback path)
+- [x] `npm run build` passes
 
 ---
 
-# Batch 1 — OTP fix + Service Navigation Rework (already on this branch)
+# Batch 4 — Duplicate-email guard + forgot-password unblock
 
-(Kept for context — see the file history; no new work needed here.)
+Pushed two fixes:
 
-- Email OTP standardised on Supabase Auth (`signInWithOtp` / `verifyOtp({ type: 'email' })`).
-- Phone OTP gated behind `NEXT_PUBLIC_PHONE_OTP_ENABLED` (default false), SMS tile shows "Soon".
-- Custom `lib/otp-store.ts` removed.
-- Old Description / FAQs / Prices / Book Now 4-tab page removed from every service.
-- New shared `ServiceBookingForm` modal with auto-filled role / name / service.
-- `/api/service-bookings` persists to `service_bookings` and emails `contactus@3ccore.com`.
-- Migration `021_service_bookings_and_maintenance_types.sql` adds `ref_maintenance_types` + `service_bookings`.
+1. **Forgot-password page was unreachable.** The `withAuth` middleware in `middleware.ts` only allowed `/portal`, `/portal/login`, `/portal/register`, `/portal/admin-login` without a token. Clicking "Forgot password?" was bouncing back to `/portal/login` (looked like a refresh). Added `/portal/forgot-password` to the allow-list.
 
-## Required Supabase Dashboard steps (batch 1)
+2. **Duplicate-email guard now persistent.** New `lib/email-exists.ts` helper checks both the in-memory store and Supabase `public.users`. Used by:
+   - `/api/auth/check-email` — called by RegisterForm step 1 to fail fast before any OTP
+   - `/api/auth/otp/send` — refuses to send if email exists, returns 409 with `code: 'EMAIL_EXISTS'`
+   - `/api/auth/register` — final safety net at OTP-verify time
 
-1. Run `supabase/migrations/021_service_bookings_and_maintenance_types.sql` in SQL Editor.
-2. Supabase → Authentication → Providers → Email → enable Email OTP.
-3. Supabase → Authentication → URL Configuration → add production + Vercel preview URLs.
+3. **RegisterForm UX:** if the email exists, an amber banner appears with two clickable actions — "sign in to your existing account" or "reset your password if you've forgotten it". Banner clears when the user edits the email field.
 
-## Required Vercel env vars (batch 1 + 2)
+4. **Forgot-password link defensiveness:** swapped `next/link` for a plain `<a href>` on the customer login form to force a real browser navigation (bypasses any stale client bundle).
+
+5. **Post-registration redirect** changed from `/portal/customer/dashboard` to `/services?role=<role>` so new customers pick a service first (matching the post-login redirect).
+
+---
+
+# Batch 3 — Admin OTP login + customer forgot-password
+
+Admin login is now 2-step:
+- Step 1: email + password → `/api/auth/admin/start-login` validates the password and triggers a Supabase OTP email to the admin address
+- Step 2: 6-digit code → the NextAuth `admin-login` provider re-checks the password AND calls `supabase.auth.verifyOtp({ type: 'email' })` before issuing a session
+
+Customer forgot-password (`/portal/forgot-password`):
+- 3-step UI: email → code + new password → success
+- `/api/auth/forgot-password/start` sends an OTP via Supabase (returns generic success whether the email is registered or not, so attackers can't probe for accounts)
+- `/api/auth/forgot-password/reset` verifies the OTP and updates the password hash
+
+`LoginForm` was split into `CustomerLoginForm` + `AdminLoginForm` under the same exported component so the existing admin login pages keep working unchanged.
+
+---
+
+# Batch 2 — DIY Inventory Report
+
+New route `/services/inventory/diy` — 4-step tool:
+
+1. Property + report meta → creates `inventory_reports` draft
+2. Rooms + media — add/reorder/remove, upload + live camera, optional items
+3. Review + AI analysis (flag-gated stub)
+4. Real PDF download with 3C Core branding + signature blocks
+
+APIs added/rewritten:
+- `/api/inventory/reports` POST/PATCH
+- `/api/inventory/rooms` POST/DELETE
+- `/api/inventory/items` POST/DELETE
+- `/api/inventory/upload` multipart → `inventory-media` bucket + `media` row (`auto_delete_at = NULL`)
+- `/api/inventory/analyse` — flag-gated stub behind `NEXT_PUBLIC_AI_ANALYSIS_ENABLED`
+- `/api/inventory/generate-pdf` — real jspdf builder, saves to `inventory-reports` bucket, writes `pdf_url`
+
+New components:
+- `components/inventory/CameraCapture.tsx` — live `getUserMedia` with front/back switch, preview/retake, file-input fallback when permission denied
+- `lib/anthropic.ts` exposes `AI_ANALYSIS_ENABLED`, `hasAnthropicKey`, `CLAUDE_MODEL`
+
+Autosave: `localStorage` + server PATCH (both debounced). Anonymous-user CTA to create an account before download.
+
+---
+
+# Batch 1 — OTP fix + Service Navigation Rework
+
+- Email OTP standardised on Supabase Auth (`signInWithOtp` / `verifyOtp({ type: 'email' })`)
+- Phone OTP gated behind `NEXT_PUBLIC_PHONE_OTP_ENABLED` (default false)
+- Custom `lib/otp-store.ts` removed
+- Old 4-tab (Description / FAQs / Prices / Book Now) page removed from every service
+- New shared `ServiceBookingForm` modal with auto-filled role / name / service type
+- `/api/service-bookings` persists to `service_bookings` and emails `contactus@3ccore.com`
+- Migration `021_service_bookings_and_maintenance_types.sql` adds `ref_maintenance_types` + `service_bookings`
+
+Per-service routing:
+- **Inventory** → DIY vs Book-an-Agent chooser
+- **Maintenance** → maintenance-type select first, then booking
+- **Midterm / Dispute / Deposit** → straight to booking form
+- **Letting** → available listings + Schedule a Callback
+
+---
+
+# Required Supabase Dashboard configuration
+
+(One-time, in order):
+
+1. **Run migrations** in SQL Editor — `020_finalised_schema_with_lookups.sql`, then `021_service_bookings_and_maintenance_types.sql`, then `022_persistent_user_profile_and_password.sql`.
+2. **Authentication → Providers → Email** — enabled.
+3. **Authentication → URL Configuration** —
+   - Site URL: `https://3ccore.com`
+   - Redirect URLs: `https://3ccore.com`, `https://3ccore.com/**`, your Vercel preview URLs, `http://localhost:3000`, `http://localhost:3000/**`
+4. **Authentication → Emails → SMTP Settings** — custom SMTP via Resend (`smtp.resend.com:465`, user `resend`, password = Resend API key, sender from a verified Resend domain).
+5. **Authentication → Email Templates** — both **Confirm signup** AND **Magic Link or OTP** updated to render `{{ .Token }}` instead of `{{ .ConfirmationURL }}`.
+
+---
+
+# Required Vercel environment variables
 
 | Key | Notes |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | |
-| `SUPABASE_SERVICE_ROLE_KEY` | Sensitive — backend only |
-| `NEXT_PUBLIC_SITE_URL` | Used in `emailRedirectTo` |
-| `NEXT_PUBLIC_PHONE_OTP_ENABLED` | Default `false` |
-| `RESEND_API_KEY` | For booking emails |
-| `RESEND_FROM_EMAIL` | Optional sender override |
-| `ANTHROPIC_API_KEY` | Sensitive — only required when enabling AI |
-| `ANTHROPIC_MODEL` | Optional — defaults to `claude-sonnet-4-6` |
-| `NEXT_PUBLIC_AI_ANALYSIS_ENABLED` | Default `false` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production + Preview |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production + Preview |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Sensitive** — backend only |
+| `NEXTAUTH_SECRET` | **Sensitive** — `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | `https://3ccore.com` |
+| `NEXT_PUBLIC_SITE_URL` | `https://3ccore.com` — used in `emailRedirectTo` |
+| `PORTAL_ADMIN_EMAIL` | identity for admin 2FA |
+| `PORTAL_ADMIN_PASSWORD` | **Sensitive** |
+| `RESEND_API_KEY` | **Sensitive** — also used in Supabase SMTP |
+| `RESEND_FROM_EMAIL` | optional |
+| `NEXT_PUBLIC_PHONE_OTP_ENABLED` | default `false` |
+| `NEXT_PUBLIC_AI_ANALYSIS_ENABLED` | default `false` |
+| `ANTHROPIC_API_KEY` | required only when AI analysis is enabled |
+| `ANTHROPIC_MODEL` | optional — defaults to `claude-sonnet-4-6` |
+| `NEXT_PUBLIC_COMPANY_EMAIL` | optional — overrides booking-email recipient |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | when Stripe goes live |
+| `STRIPE_SECRET_KEY` | **Sensitive** — when Stripe goes live |
+| `STRIPE_WEBHOOK_SECRET` | **Sensitive** — when Stripe goes live |

@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { findUserByEmail, hash, updateUserPasswordByEmail } from '@/lib/store'
+import { hash, updateUserPasswordByEmail } from '@/lib/store'
 import { getSupabaseClient } from '@/lib/supabase'
+import { emailExists } from '@/lib/email-exists'
+import { updateCustomerPassword } from '@/lib/users-db'
 
 export const dynamic = 'force-dynamic'
 
 // Step 2 of forgot-password: verify the OTP code via Supabase and set the
-// new password on the user. We re-check the email is registered here
-// (didn't reveal it in step 1) before issuing the password update.
+// new password on the user (both in-memory store and Supabase public.users
+// so the change survives serverless cold starts).
 
 const schema = z.object({
   email:       z.string().email(),
@@ -48,27 +50,31 @@ export async function POST(req: Request) {
     // Discard the Supabase session — we don't use it for portal sessions
     try { await supabase.auth.signOut() } catch { /* ignore */ }
 
-    // Only update the password if the email is actually registered. If not, we
-    // return a generic success message — the email-verification step already
-    // proved the requester owns the inbox, but we still won't create accounts
-    // here.
-    const user = findUserByEmail(email)
-    if (!user) {
+    // Only update if the email is registered (we already proved inbox ownership
+    // via the OTP — but we still shouldn't create accounts here).
+    const hasAccount = await emailExists(email)
+    if (!hasAccount) {
       return NextResponse.json({
         success: true,
         message: 'If an account exists for this email, the password has been updated.',
       })
     }
 
-    const ok = updateUserPasswordByEmail(email, hash(newPassword))
-    if (!ok) {
-      return NextResponse.json(
-        { success: false, message: 'Could not update password. Please contact support.' },
-        { status: 500 },
-      )
+    const newHash = hash(newPassword)
+
+    // Persistent — update Supabase public.users.password_hash
+    const dbOk = await updateCustomerPassword(email, newHash)
+    // In-memory — covers the seeded demo accounts in the same Vercel instance
+    updateUserPasswordByEmail(email, newHash)
+
+    if (!dbOk) {
+      // We updated the in-memory copy but failed to persist — return a soft
+      // success so the user can sign in immediately on this instance, but
+      // log the issue.
+      console.warn('[forgot-password.reset] password update did not persist to Supabase')
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, persisted: dbOk })
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(
