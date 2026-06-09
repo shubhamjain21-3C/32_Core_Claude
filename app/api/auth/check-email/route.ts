@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { emailExists } from '@/lib/email-exists'
+import { isFullyRegistered } from '@/lib/email-exists'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +14,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { email } = schema.parse(body)
-    const exists = await emailExists(email)
+    // "Exists" here means a finished registration — don't block a user who
+    // abandoned mid-flow (only the trigger stub exists in public.users).
+    const exists = await isFullyRegistered(email)
     return NextResponse.json({ exists })
   } catch (err) {
     if (err instanceof z.ZodError) {

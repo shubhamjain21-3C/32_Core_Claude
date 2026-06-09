@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createUser, hash } from '@/lib/store'
+import { createUser, hashPassword } from '@/lib/store'
 import { getSupabaseClient } from '@/lib/supabase'
-import { emailExists } from '@/lib/email-exists'
+import { isFullyRegistered } from '@/lib/email-exists'
 import { writeCustomerProfile } from '@/lib/users-db'
 
 export const dynamic = 'force-dynamic'
@@ -66,7 +66,11 @@ export async function POST(request: Request) {
       /* ignore — we just don't want the Supabase session sticking around */
     }
 
-    if (await emailExists(data.email)) {
+    // Use the STRICT check — we don't want to reject the user against the
+    // stub row that our own signInWithOtp just created via the
+    // handle_new_user trigger. Only block when a previous registration
+    // actually wrote a password_hash or Lastname onto public.users.
+    if (await isFullyRegistered(data.email)) {
       return NextResponse.json(
         {
           success: false,
@@ -78,7 +82,7 @@ export async function POST(request: Request) {
     }
 
     const fullName     = [data.firstName, data.middleName, data.lastName].filter(Boolean).join(' ')
-    const passwordHash = hash(data.password)
+    const passwordHash = await hashPassword(data.password)
 
     // 1) In-memory store — kept for the current process so the same Vercel
     //    instance can serve the auto-signin straight after register.

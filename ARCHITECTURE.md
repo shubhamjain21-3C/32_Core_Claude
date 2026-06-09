@@ -134,19 +134,24 @@ NextAuth.js (JWT strategy) owns portal sessions. Supabase Auth is used purely fo
 RegisterForm Step 1
   ├── fields: name, dob, email, phone, company (PM only), password, portal role
   ├── on Continue → POST /api/auth/check-email
-  │                  └── lib/email-exists.ts → in-memory store ∪ Supabase public.users
+  │                  └── lib/email-exists.isFullyRegistered
+  │                       (in-memory ∪ public.users WHERE password_hash OR Lastname set)
   │     ├── exists → amber banner with [Sign in] [Reset password] links, stop
   │     └── new   → advance to Step 2
 
 RegisterForm Step 2
   ├── method = email (SMS gated behind NEXT_PUBLIC_PHONE_OTP_ENABLED)
   ├── Send Code → POST /api/auth/otp/send
-  │                 └── emailExists guard, then supabase.auth.signInWithOtp({ email })
+  │                 ├── isFullyRegistered guard
+  │                 └── supabase.auth.signInWithOtp({ email })
+  │                     ↳ triggers handle_new_user → stub row in public.users
   ├── User enters 6 digits → Verify & Create Account
   └── POST /api/auth/register
         ├── supabase.auth.verifyOtp({ email, token, type: 'email' })
-        ├── emailExists guard (final safety net)
-        ├── createUser() in lib/store
+        ├── isFullyRegistered guard (strict — does NOT 409 against our own stub)
+        ├── hashPassword(password)  ← bcrypt cost 12
+        ├── createUser() in lib/store  (in-memory, this Vercel instance only)
+        ├── writeCustomerProfile()     (UPDATE public.users with full profile)
         ├── signIn('customer-login', { email, password })  (NextAuth credentials)
         └── router.push(`/services?role=${portalRole}`)
 ```
@@ -156,6 +161,17 @@ RegisterForm Step 2
 ```
 LoginForm (CustomerLoginForm)
   ├── email + password → signIn('customer-login')
+  │
+  ├── NextAuth provider authorize()
+  │     ├── findCustomerByEmail(email)            (Supabase public.users)
+  │     ├── verifyPassword(plain, password_hash)  (bcrypt OR legacy sha256)
+  │     │     ├── bcrypt format → bcrypt.compare()
+  │     │     └── sha256 format → timing-safe compare, then LAZY UPGRADE:
+  │     │          re-hash password with bcrypt and persist via
+  │     │          updateCustomerPassword(email, newHash) — transparent
+  │     │          to the user, every subsequent login uses bcrypt
+  │     └── fallback: in-memory store (seeded demo accounts only)
+  │
   └── on success → /services?role={portalRole}   (returnUrl honoured if set)
 ```
 
@@ -402,8 +418,9 @@ DIY Inventory
 
 ## 10. Known limitations / next steps
 
-- **NextAuth ↔ Supabase user mapping (BLOCKER 2).** Customer sessions live in NextAuth JWTs with synthetic IDs (`user-shubham-pm`, `user-1700000000`) that don't match `public.users.User_id` (UUIDs). FK fields are inserted as `NULL` in inventory writes, and RLS for the bucket can't be tightened until this is unified.
-- **In-memory user store.** New customer registrations land in `lib/store.ts` which is reset between Vercel function instances. The Supabase `public.users` row (created by the auth trigger) is the durable record; we now check against it for duplicate-email guards.
+- **NextAuth ↔ Supabase user mapping (BLOCKER 2).** Customer sessions live in NextAuth JWTs with synthetic IDs (`user-shubham-pm`) for seeded demos. Real customers now use `User_id` UUIDs from `public.users.User_id` (after the Batch 5 persistence work). Inventory rows still write `NULL` to FK columns because that path predates the unification.
+- **In-memory user store.** Still used for the 9 seeded demo accounts (Shubham/Irfan/Adamya × roles) — they don't have Supabase Auth records. Real customers persist to `public.users`.
+- **Password hashing.** bcrypt (cost 12) via `bcryptjs`. Legacy SHA-256 hashes (any pre-bcrypt customer) are detected at login and lazily re-hashed to bcrypt. The 9 seeded demos still use SHA-256 — they're in-code only and verified through the same lib/store.verifyPassword path.
 - **Phone OTP** — code path is implemented but gated. Connect Twilio/MessageBird in Supabase Auth → Providers → Phone, then flip `NEXT_PUBLIC_PHONE_OTP_ENABLED=true`.
 - **AI analysis** — flag-gated stub. Adds `ANTHROPIC_API_KEY` and flips `NEXT_PUBLIC_AI_ANALYSIS_ENABLED=true` to enable live Claude calls.
 - **Stripe** — routes scaffolded but no live keys.
