@@ -1,10 +1,67 @@
 # Changes Summary
 
-Last updated: 2026-06-08
+Last updated: 2026-06-08 (Batch 6)
 
 This is a chronological log of substantial changes shipped on the website. Each batch corresponds to a merge to `main`. The most recent batch is at the top.
 
 For the current overall architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+---
+
+# Batch 6 — bcrypt passwords + fix Lastname/Phone/Company not saving
+
+Two related issues:
+
+### Issue 1 — SHA-256 was too weak
+
+Previous scheme: `sha256(password + "salt_3ccore")`. Fixed pepper, no per-user salt, no work factor — modern GPUs can crack ~100 billion SHA-256 hashes per second, so a leaked DB would be brute-forceable.
+
+**Fix:** moved to **bcrypt** (cost factor 12, ~150 ms per hash) using `bcryptjs` (pure JS, deploys on Vercel without native-binding worries).
+
+- `lib/store.ts` now exports `hashPassword` (async), `verifyPassword` (async, handles both formats), and `isLegacyHash`. The old sync `hash` is retained as an alias only for the 9 seeded demo accounts and the legacy-verify path.
+- `verifyPassword` does **timing-safe** comparison for the legacy SHA-256 path.
+- **Lazy migration on login.** The NextAuth `customer-login` provider detects SHA-256 hashes and re-hashes the password with bcrypt on first successful login, transparently. Existing users don't have to reset.
+
+### Issue 2 — `Lastname`, `Phone`, `Company` weren't saving on `public.users`
+
+Root cause: `/api/auth/register` was calling `emailExists` to guard against duplicates **after** our own `signInWithOtp` had already triggered the `handle_new_user` trigger and created a stub `public.users` row. The duplicate check then saw that stub row and returned 409 **before** our `writeCustomerProfile` UPDATE ran. So every new user got blocked at the very last step and the table was left with only the trigger defaults (FirstName = email local part, everything else NULL/empty).
+
+**Fix:** new `isFullyRegistered(email)` helper in `lib/email-exists.ts` that returns true only when `public.users.password_hash` or `Lastname` is populated — i.e. when a previous registration actually finished. Swapped into:
+- `/api/auth/check-email` — step-1 fail-fast for the registration form
+- `/api/auth/otp/send` — step-2 safety net
+- `/api/auth/register` — final safety net at OTP-verify time (no longer 409s against its own stub)
+- `/api/auth/forgot-password/start` and `/reset` — only send reset OTPs to fully-registered accounts
+
+After this fix, every `public.users` row written by a new customer will have **FirstName, MiddleName, Lastname, Phone, Company, password_hash, portal_role_id** all populated as typed by the user (subject to case-insensitive `Email` matching via `ILIKE` — Supabase normalises emails to lowercase, names keep their original case).
+
+### Files
+
+Added
+- `package.json` — `bcryptjs` + `@types/bcryptjs`
+
+Updated
+- `lib/store.ts` — bcrypt helpers + deprecated sync `hash` alias
+- `lib/email-exists.ts` — split into `emailExists` (broad) + `isFullyRegistered` (strict)
+- `lib/auth.ts` — async customer-login with lazy hash upgrade
+- `app/api/auth/register/route.ts` — bcrypt + strict duplicate check
+- `app/api/auth/check-email/route.ts` — strict check
+- `app/api/auth/otp/send/route.ts` — strict check
+- `app/api/auth/forgot-password/start/route.ts` — strict check
+- `app/api/auth/forgot-password/reset/route.ts` — bcrypt + strict check
+
+### Acceptance
+
+- [x] Register a fresh account → `public.users` row has FirstName / Lastname / Phone / Company / password_hash all populated
+- [x] Password hash starts with `$2b$12$` (bcrypt)
+- [x] Login an existing SHA-256 account → succeeds, hash silently upgraded to bcrypt in the same request
+- [x] Try to register the same email twice → blocked at step 1 with the amber banner
+- [x] Try to register an email that's mid-flow (signInWithOtp created the stub but the form was abandoned) → allowed to retry
+- [x] Forgot-password only sends OTP to fully-registered accounts
+- [x] `npm run build` passes
+
+### No new SQL required
+
+Migration 022 from Batch 5 is sufficient — we still store the hash in `public.users.password_hash` (it's a `text` column either way). If you've already run 022, you're good.
 
 ---
 

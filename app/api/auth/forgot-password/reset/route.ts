@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { hash, updateUserPasswordByEmail } from '@/lib/store'
+import { hashPassword, updateUserPasswordByEmail } from '@/lib/store'
 import { getSupabaseClient } from '@/lib/supabase'
-import { emailExists } from '@/lib/email-exists'
+import { isFullyRegistered } from '@/lib/email-exists'
 import { updateCustomerPassword } from '@/lib/users-db'
 
 export const dynamic = 'force-dynamic'
@@ -50,9 +50,10 @@ export async function POST(req: Request) {
     // Discard the Supabase session — we don't use it for portal sessions
     try { await supabase.auth.signOut() } catch { /* ignore */ }
 
-    // Only update if the email is registered (we already proved inbox ownership
-    // via the OTP — but we still shouldn't create accounts here).
-    const hasAccount = await emailExists(email)
+    // Only update if the email belongs to a fully-registered account.
+    // We already proved inbox ownership via the OTP — but we still shouldn't
+    // create accounts here.
+    const hasAccount = await isFullyRegistered(email)
     if (!hasAccount) {
       return NextResponse.json({
         success: true,
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
       })
     }
 
-    const newHash = hash(newPassword)
+    const newHash = await hashPassword(newPassword)
 
     // Persistent — update Supabase public.users.password_hash
     const dbOk = await updateCustomerPassword(email, newHash)

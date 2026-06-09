@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseClient } from '@/lib/supabase'
-import { emailExists } from '@/lib/email-exists'
+import { isFullyRegistered } from '@/lib/email-exists'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,9 +23,9 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { email } = schema.parse(body)
 
-    // Look up in BOTH places (in-memory seeded accounts + persistent
-    // Supabase public.users) so newly-registered customers can reset too.
-    const hasAccount = await emailExists(email)
+    // Only send the reset OTP to a fully-registered account (one with a
+    // password_hash or Lastname populated — i.e. not just a mid-flow stub).
+    const hasAccount = await isFullyRegistered(email)
 
     // Generic success response — don't reveal whether the email is registered.
     const responseOk = NextResponse.json({ success: true, masked: maskEmail(email) })

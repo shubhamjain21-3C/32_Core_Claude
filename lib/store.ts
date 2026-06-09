@@ -6,10 +6,54 @@
  */
 
 import { createHash } from 'crypto'
+import bcrypt from 'bcryptjs'
 import type { PortalUser, Property, CustomerService } from '@/types'
 
-export const hash = (pw: string) =>
+// ── Password hashing ────────────────────────────────────────────────────────
+// Real customer passwords use bcrypt (cost factor 12 — ~150 ms per hash on
+// Vercel's Node runtime; fine for login, expensive for attackers).
+//
+// `legacyHash` is the original sha256(pw + salt) scheme. It's kept so that:
+//   1. The 9 seeded in-memory demo accounts (Shubham/Irfan/Adamya × roles)
+//      still work without re-seeding on every cold start.
+//   2. Any production user who registered before bcrypt was wired up still
+//      logs in — `verifyPassword` detects the old format and the auth flow
+//      re-hashes the password with bcrypt on success (lazy migration —
+//      see lib/auth.ts customer-login provider).
+
+const legacyHash = (pw: string) =>
   createHash('sha256').update(pw + 'salt_3ccore').digest('hex')
+
+const BCRYPT_COST = 12
+
+export async function hashPassword(pw: string): Promise<string> {
+  return bcrypt.hash(pw, BCRYPT_COST)
+}
+
+export async function verifyPassword(plain: string, stored: string | null | undefined): Promise<boolean> {
+  if (!stored) return false
+  // bcrypt hashes always start with $2a$, $2b$, or $2y$
+  if (stored.startsWith('$2')) {
+    try { return await bcrypt.compare(plain, stored) } catch { return false }
+  }
+  // Legacy sha256 — timing-safe compare to avoid leaking bytes
+  const computed = legacyHash(plain)
+  if (computed.length !== stored.length) return false
+  let diff = 0
+  for (let i = 0; i < computed.length; i++) diff |= computed.charCodeAt(i) ^ stored.charCodeAt(i)
+  return diff === 0
+}
+
+export function isLegacyHash(stored: string | null | undefined): boolean {
+  if (!stored) return false
+  return !stored.startsWith('$2')
+}
+
+/**
+ * @deprecated Use `hashPassword` (bcrypt). Kept as an alias only so the seeded
+ *   demo accounts and the legacy-verify path continue to compile.
+ */
+export const hash = legacyHash
 
 // ── Users ──────────────────────────────────────────────────────────────────────
 

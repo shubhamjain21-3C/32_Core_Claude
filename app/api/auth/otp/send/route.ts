@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSupabaseClient } from '@/lib/supabase'
-import { emailExists } from '@/lib/email-exists'
+import { isFullyRegistered } from '@/lib/email-exists'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,12 +36,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Email address is required.' }, { status: 400 })
       }
 
-      // Block sending an OTP if an account already exists for this email — this
-      // route is only used by the registration flow. Forgot-password uses its
-      // own dedicated route at /api/auth/forgot-password/start. Uses the
-      // shared emailExists helper which checks BOTH the in-memory store AND
-      // Supabase public.users (persistent across serverless invocations).
-      if (await emailExists(email)) {
+      // Block sending an OTP only if registration is fully complete — a user
+      // mid-flow (signInWithOtp triggered the public.users stub on a previous
+      // attempt) should be allowed to retry. Forgot-password uses its own
+      // dedicated route at /api/auth/forgot-password/start.
+      if (await isFullyRegistered(email)) {
         return NextResponse.json(
           {
             error: 'An account with this email already exists. Please sign in or reset your password.',
