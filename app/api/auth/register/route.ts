@@ -144,7 +144,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, persistedToDb })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, errors: error.errors }, { status: 400 })
+      // Surface the failing field so the form can show the real reason
+      // instead of falling back to a generic "Verification failed".
+      const first = error.errors[0]
+      const field = first?.path?.join('.') ?? 'request'
+      const issue = first?.message ?? 'is invalid'
+      console.error('[register] schema validation failed:', error.errors)
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Could not submit: ${field} ${issue}`,
+          errors:  error.errors,
+        },
+        { status: 400 },
+      )
     }
     console.error('[register] Unexpected error:', error)
     return NextResponse.json({ success: false, message: 'Registration failed' }, { status: 500 })
