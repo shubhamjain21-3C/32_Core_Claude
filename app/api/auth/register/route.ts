@@ -16,7 +16,7 @@ const registerSchema = z.object({
   phone:      z.string().optional(),
   company:    z.string().optional(),
   password:   z.string().min(8, 'Password must be at least 8 characters'),
-  portalRole: z.enum(['property_manager', 'tenant', 'student']).optional(),
+  portalRole: z.enum(['property_manager', 'landlord', 'tenant', 'student']).optional(),
   otpCode:    z.string().length(6, 'Verification code must be 6 digits'),
   otpMethod:  z.enum(['email', 'phone']),
 })
