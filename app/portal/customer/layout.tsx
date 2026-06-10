@@ -1,7 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
-import { findUserByEmail } from '@/lib/store'
 import { PortalSidebar } from '@/components/portal/PortalSidebar'
 import { PortalTopBar } from '@/components/portal/PortalTopBar'
 
@@ -9,9 +8,10 @@ export default async function CustomerPortalLayout({ children }: { children: Rea
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== 'customer') redirect('/portal/login')
 
-  // Look up full user record to get portalRole
-  const fullUser = session.user.email ? findUserByEmail(session.user.email) : null
-  const portalRole = fullUser?.portalRole ?? undefined
+  // portalRole is set by the customer-login NextAuth provider (sourced from
+  // Supabase public.users on first authorize), so we can read it straight
+  // from the session — no need to round-trip the in-memory store.
+  const portalRole = session.user.portalRole ?? undefined
   const userName   = session.user.name || session.user.email || 'Client'
   const userEmail  = session.user.email || ''
 

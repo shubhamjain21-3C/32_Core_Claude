@@ -2,13 +2,16 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { authOptions } from '@/lib/auth'
-import { getPropertiesByCustomer, getServicesByCustomer, findUserByEmail } from '@/lib/store'
+import { getPropertiesByCustomer, getServicesByCustomer } from '@/lib/store'
 import { Building2, Wrench, TrendingUp, CheckCircle2, Plus, LayoutGrid } from 'lucide-react'
 
 export default async function CustomerDashboard() {
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== 'customer') redirect('/portal/login')
 
+  // Properties / services still live in the in-memory store (seeded demos).
+  // For real Supabase-backed customers these will be empty until BLOCKER 2
+  // (the in-memory → Supabase migration for properties + services) ships.
   const myProperties  = getPropertiesByCustomer(session.user.id)
   const myServices    = getServicesByCustomer(session.user.id)
 
@@ -17,9 +20,8 @@ export default async function CustomerDashboard() {
   const activeServices = myServices.filter(s => s.status === 'Active').length
   const allBenefits    = myServices.flatMap(s => s.benefits)
 
-  const firstName   = session.user.name?.split(' ')[0] ?? session.user.name ?? 'there'
-  const fullUser    = session.user.email ? findUserByEmail(session.user.email) : null
-  const portalRole  = fullUser?.portalRole ?? 'property_manager'
+  const firstName  = session.user.name?.split(' ')[0] ?? session.user.name ?? 'there'
+  const portalRole = session.user.portalRole ?? 'property_manager'
 
   return (
     <div className="p-6 md:p-8">

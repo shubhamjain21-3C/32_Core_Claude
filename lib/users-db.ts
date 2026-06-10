@@ -27,6 +27,7 @@ export interface CustomerProfileRow {
   Company:        string | null
   password_hash:  string | null
   portal_role_id: number | null
+  created_at:     string
 }
 
 /** Resolve a ref_portal_roles code to id, returns null if not found. */
@@ -88,7 +89,7 @@ export async function findCustomerByEmail(email: string): Promise<CustomerProfil
     const admin = createAdminClient()
     const { data, error } = await admin
       .from('users')
-      .select('User_id, Email, FirstName, MiddleName, Lastname, Phone, Company, password_hash, portal_role_id')
+      .select('User_id, Email, FirstName, MiddleName, Lastname, Phone, Company, password_hash, portal_role_id, created_at')
       .ilike('Email', email)
       .limit(1)
       .maybeSingle() as { data: CustomerProfileRow | null, error: { message: string } | null }
