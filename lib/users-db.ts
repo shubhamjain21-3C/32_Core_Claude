@@ -14,7 +14,7 @@ export interface CustomerProfileWrite {
   phone?:     string | null
   company?:   string | null
   passwordHash: string
-  portalRoleCode?: 'property_manager' | 'tenant' | 'student'
+  portalRoleCode?: 'property_manager' | 'landlord' | 'tenant' | 'student'
 }
 
 export interface CustomerProfileRow {

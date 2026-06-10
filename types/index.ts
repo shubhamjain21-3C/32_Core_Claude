@@ -60,7 +60,7 @@ export interface ContactFormData {
 // ── Portal / Auth ─────────────────────────────────────────────────────────────
 
 export type UserRole = 'customer' | 'admin'
-export type PortalRole = 'property_manager' | 'tenant' | 'student'
+export type PortalRole = 'property_manager' | 'landlord' | 'tenant' | 'student'
 
 export interface PortalUser {
   id: string
