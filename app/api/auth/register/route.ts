@@ -51,12 +51,29 @@ export async function POST(request: Request) {
           })
 
     if (verifyError) {
+      // Surface the real Supabase error message in logs and the response
+      // so we can diagnose what's actually wrong (expired, already used,
+      // rate limited, wrong type, etc.).
+      console.error('[register] verifyOtp failed:', {
+        email:  data.email,
+        method: data.otpMethod,
+        code:   verifyError.code ?? null,
+        status: verifyError.status ?? null,
+        name:   verifyError.name,
+        msg:    verifyError.message,
+      })
       const msg = verifyError.message.toLowerCase()
       const friendly =
-        msg.includes('expired') ? 'Your verification code has expired. Please request a new one.'
+        msg.includes('expired')                          ? 'Your verification code has expired. Please request a new one.'
         : msg.includes('invalid') || msg.includes('mismatch') ? 'Incorrect verification code. Please try again.'
-        : verifyError.message || 'Verification failed. Please try again.'
-      return NextResponse.json({ success: false, message: friendly }, { status: 400 })
+        : msg.includes('rate')                           ? 'Too many attempts. Please wait a minute and try again.'
+        : verifyError.message
+                        ? `Verification failed: ${verifyError.message}`
+                        : 'Verification failed. Please try again.'
+      return NextResponse.json(
+        { success: false, message: friendly, supabaseError: verifyError.message },
+        { status: 400 },
+      )
     }
 
     // ── Sign out the Supabase session — we use NextAuth for portal sessions ───
