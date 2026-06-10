@@ -32,11 +32,17 @@ export async function POST(req: Request) {
       )
     }
 
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: otpCode,
-      type:  'email',
-    })
+    // Supabase v2 picks a different OTP `type` depending on the user's
+    // state (confirmed vs unconfirmed, magic link vs OTP). Try the
+    // common email types in order.
+    type EmailOtpType = 'email' | 'signup' | 'magiclink' | 'recovery'
+    const types: EmailOtpType[] = ['email', 'recovery', 'magiclink', 'signup']
+    let verifyError: { message: string } | null = null
+    for (const type of types) {
+      const res = await supabase.auth.verifyOtp({ email, token: otpCode, type })
+      if (!res.error) { verifyError = null; break }
+      if (!verifyError) verifyError = res.error
+    }
 
     if (verifyError) {
       const msg = verifyError.message.toLowerCase()
