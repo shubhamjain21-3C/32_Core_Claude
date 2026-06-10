@@ -37,31 +37,45 @@ export async function POST(request: Request) {
       )
     }
 
-    const { error: verifyError } =
-      data.otpMethod === 'email'
-        ? await supabase.auth.verifyOtp({
-            email: data.email,
-            token: data.otpCode,
-            type:  'email',
-          })
-        : await supabase.auth.verifyOtp({
-            phone: data.phone ?? '',
-            token: data.otpCode,
-            type:  'sms',
-          })
+    // Supabase v2 uses different `type` values depending on the user's
+    // confirmation state:
+    //   - 'email' for already-confirmed users
+    //   - 'signup' for first-time email confirmation
+    //   - 'magiclink' for OTPs generated alongside a magic link
+    // Our flow can hit any of these (especially if a prior attempt
+    // auto-confirmed the email via a clicked magic link). Try them in
+    // order and return the first success. The error message we surface
+    // is the FIRST attempt's, because that's the one that most clearly
+    // reflects the real cause when none succeed.
+    type EmailOtpType = 'email' | 'signup' | 'magiclink'
+    const emailOtpTypes: EmailOtpType[] = ['email', 'signup', 'magiclink']
+    const attempts: { type: EmailOtpType; msg: string }[] = []
+
+    let verifyError: { message: string; code?: string; status?: number; name?: string } | null = null
+
+    if (data.otpMethod === 'email') {
+      for (const type of emailOtpTypes) {
+        const res = await supabase.auth.verifyOtp({
+          email: data.email,
+          token: data.otpCode,
+          type,
+        })
+        if (!res.error) { verifyError = null; break }
+        attempts.push({ type, msg: res.error.message })
+        if (!verifyError) verifyError = res.error
+      }
+    } else {
+      const res = await supabase.auth.verifyOtp({
+        phone: data.phone ?? '',
+        token: data.otpCode,
+        type:  'sms',
+      })
+      verifyError = res.error
+    }
 
     if (verifyError) {
+      console.error('[register] verifyOtp failed across all types:', { email: data.email, method: data.otpMethod, attempts })
       // Surface the real Supabase error message in logs and the response
-      // so we can diagnose what's actually wrong (expired, already used,
-      // rate limited, wrong type, etc.).
-      console.error('[register] verifyOtp failed:', {
-        email:  data.email,
-        method: data.otpMethod,
-        code:   verifyError.code ?? null,
-        status: verifyError.status ?? null,
-        name:   verifyError.name,
-        msg:    verifyError.message,
-      })
       const msg = verifyError.message.toLowerCase()
       const friendly =
         msg.includes('expired')                          ? 'Your verification code has expired. Please request a new one.'
