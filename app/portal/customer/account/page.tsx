@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
 import { findUserByEmail } from '@/lib/store'
+import { findCustomerByEmail, portalRoleCodeFromId } from '@/lib/users-db'
 import { User, Mail, Phone, Calendar, Shield, Building2 } from 'lucide-react'
 
 const ROLE_LABELS: Record<string, string> = {
@@ -14,13 +15,43 @@ export default async function AccountPage() {
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== 'customer') redirect('/portal/login')
 
-  const user = session.user.email ? findUserByEmail(session.user.email) : null
+  const email = session.user.email ?? ''
 
-  const nameParts   = (user?.name ?? '').split(' ')
-  const firstName   = nameParts[0] ?? ''
-  const lastName    = nameParts.slice(1).join(' ') ?? ''
-  const roleLabel   = ROLE_LABELS[user?.portalRole ?? ''] ?? 'Client'
-  const portalRole  = user?.portalRole ?? ''
+  // ── Source of truth: Supabase public.users ───────────────────────────────
+  // Falls back to the in-memory store for the 9 seeded demo accounts that
+  // were never inserted into Supabase.
+  const dbUser = email ? await findCustomerByEmail(email) : null
+
+  let firstName  = ''
+  let middleName = ''
+  let lastName   = ''
+  let phone      = ''
+  let company    = ''
+  let portalRole = ''
+  let createdAt  = ''
+
+  if (dbUser) {
+    firstName  = dbUser.FirstName || ''
+    middleName = dbUser.MiddleName || ''
+    lastName   = dbUser.Lastname || ''
+    phone      = dbUser.Phone || ''
+    company    = dbUser.Company || ''
+    portalRole = (await portalRoleCodeFromId(dbUser.portal_role_id)) || ''
+    createdAt  = dbUser.created_at ? dbUser.created_at.slice(0, 10) : ''
+  } else {
+    // Fallback: seeded demo accounts only
+    const memUser = email ? findUserByEmail(email) : null
+    const nameParts = (memUser?.name ?? '').split(' ')
+    firstName  = nameParts[0] ?? ''
+    lastName   = nameParts.slice(1).join(' ') ?? ''
+    phone      = memUser?.phone ?? ''
+    company    = memUser?.company ?? ''
+    portalRole = memUser?.portalRole ?? ''
+    createdAt  = memUser?.createdAt ?? ''
+  }
+
+  const fullName  = [firstName, middleName, lastName].filter(Boolean).join(' ') || email
+  const roleLabel = ROLE_LABELS[portalRole] ?? 'Client'
 
   return (
     <div className="p-6 md:p-8 max-w-2xl">
@@ -39,10 +70,10 @@ export default async function AccountPage() {
           className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0"
           style={{ background: 'rgba(212,134,10,0.15)', color: '#D4860A', border: '2px solid rgba(212,134,10,0.35)' }}
         >
-          {(user?.name ?? 'U').charAt(0)}
+          {(fullName || email || 'U').charAt(0).toUpperCase()}
         </div>
         <div>
-          <p className="font-heading font-bold text-[#2C1F14] text-xl">{user?.name}</p>
+          <p className="font-heading font-bold text-[#2C1F14] text-xl">{fullName}</p>
           <span
             className="inline-block mt-1 text-xs px-3 py-1 rounded-full font-medium"
             style={{ background: 'rgba(212,134,10,0.12)', color: '#D4860A', border: '1px solid rgba(212,134,10,0.3)' }}
@@ -61,15 +92,15 @@ export default async function AccountPage() {
           <h2 className="font-semibold text-[#2C1F14] font-heading">Personal Information</h2>
         </div>
 
-        <div className="divide-y" style={{ '--tw-divide-opacity': '1' } as React.CSSProperties}>
+        <div className="divide-y">
           {[
-            { Icon: User,      label: 'First Name',  value: firstName  || '—' },
-            { Icon: User,      label: 'Last Name',   value: lastName   || '—' },
-            { Icon: Mail,      label: 'Email',       value: user?.email || '—' },
-            { Icon: Phone,     label: 'Phone',       value: user?.phone || '—' },
-            { Icon: Building2, label: 'Company',     value: user?.company || '—' },
+            { Icon: User,      label: 'First Name',  value: firstName   || '—' },
+            { Icon: User,      label: 'Last Name',   value: lastName    || '—' },
+            { Icon: Mail,      label: 'Email',       value: email       || '—' },
+            { Icon: Phone,     label: 'Phone',       value: phone       || '—' },
+            { Icon: Building2, label: 'Company',     value: company     || '—' },
             { Icon: Shield,    label: 'Account Type', value: roleLabel },
-            { Icon: Calendar,  label: 'Member Since', value: user?.createdAt || '—' },
+            { Icon: Calendar,  label: 'Member Since', value: createdAt  || '—' },
           ].map(({ Icon, label, value }) => (
             <div
               key={label}
