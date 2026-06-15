@@ -3,28 +3,28 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary:      #050d1a;
-  --bg-secondary:    #0a1c35;
-  --bg-hero:         #071224;
-  --bg-surface:      #0d2248;
-  --bg-card:         #0d1f3c;
-  --blue-primary:    #2a7fd4;
-  --blue-dark:       #1a5090;
-  --blue-cta:        #1a5fa8;
-  --cyan-accent:     #00ccff;
-  --cyan-light:      #6ab4e8;
-  --text-primary:    #ffffff;
-  --text-secondary:  #c8dff0;
-  --text-muted:      #7aaecc;
-  --text-accent:     #4a90c4;
-  --border-subtle:   #1e3a5f;
+  --bg-primary:      #FFF8EE;
+  --bg-secondary:    #FDE8B0;
+  --bg-hero:         #2C1F14;
+  --bg-surface:      #FFF8EE;
+  --bg-card:         #FFFFFF;
+  --gold-primary:    #D4860A;
+  --gold-light:      #F0A830;
+  --gold-cta:        #D4860A;
+  --gold-accent:     #F0A830;
+  --gold-pale:       #FDE8B0;
+  --text-primary:    #2C1F14;
+  --text-secondary:  #5C3D28;
+  --text-muted:      #8B3A2A;
+  --text-accent:     #D4860A;
+  --border-subtle:   rgba(212,134,10,0.25);
 }
 
 html { scroll-behavior: smooth; }
 
 body {
   background-color: var(--bg-primary);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -32,30 +32,30 @@ body {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
-::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--blue-dark); }
+::-webkit-scrollbar-thumb { background: var(--gold-primary); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-light); }
 
 /* Focus ring */
 *:focus-visible {
-  outline: 2px solid var(--cyan-accent);
+  outline: 2px solid var(--gold-light);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-[#1a5fa8] border border-[#2a7fd4] text-white px-8 py-3 rounded
+    @apply bg-[#D4860A] border border-[#D4860A] text-white px-8 py-3 rounded
            font-medium text-sm tracking-wide transition-all duration-200
-           hover:bg-[#2a6db8] hover:border-[#00ccff] hover:shadow-lg;
+           hover:bg-[#F0A830] hover:border-[#F0A830] hover:shadow-lg;
   }
   .btn-secondary {
-    @apply border border-[#2a7fd4] text-[#7aaecc] px-8 py-3 rounded
+    @apply border border-[#D4860A] text-[#8B3A2A] px-8 py-3 rounded
            font-medium text-sm tracking-wide transition-all duration-200
-           hover:border-[#00ccff] hover:text-white hover:bg-[#1a5fa8]/20;
+           hover:border-[#F0A830] hover:text-[#2C1F14] hover:bg-[#D4860A]/10;
   }
   .card-surface {
-    @apply bg-[#0d1f3c] border border-[#1e3a5f] rounded-xl p-6
-           hover:border-[#2a7fd4] transition-colors duration-300;
+    @apply bg-white/60 border border-[#D4860A]/20 rounded-xl p-6
+           hover:border-[#D4860A]/50 transition-colors duration-300;
   }
   .section-padding {
     @apply py-20 px-4 sm:px-6 lg:px-8;

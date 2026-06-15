@@ -11,7 +11,7 @@ const iconMap: Record<string, React.ElementType> = {
 
 export function ServicesPreview() {
   return (
-    <section className="section-padding bg-[#050d1a]">
+    <section className="section-padding bg-[#1e0f05]">
       <div className="container-max">
         <SectionHeading
           label="What We Do"
@@ -30,16 +30,16 @@ export function ServicesPreview() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="group bg-[#0d1f3c] border border-[#1e3a5f] rounded-xl p-6 hover:border-[#2a7fd4] transition-all duration-300 hover:shadow-lg hover:shadow-[#2a7fd4]/10"
+                className="group bg-[#3A2517] border border-[#5C3D28] rounded-xl p-6 hover:border-[#D4860A] transition-all duration-300 hover:shadow-lg hover:shadow-[#D4860A]/10"
               >
-                <div className="w-12 h-12 rounded-lg bg-[#1a5fa8]/20 border border-[#2a7fd4]/30 flex items-center justify-center mb-4 group-hover:bg-[#1a5fa8]/40 transition-colors duration-300">
-                  <Icon size={22} className="text-[#6ab4e8]" />
+                <div className="w-12 h-12 rounded-lg bg-[#D4860A]/20 border border-[#D4860A]/30 flex items-center justify-center mb-4 group-hover:bg-[#D4860A]/40 transition-colors duration-300">
+                  <Icon size={22} className="text-[#F0A830]" />
                 </div>
                 <h3 className="font-semibold font-heading text-white mb-2">{service.title}</h3>
-                <p className="text-[#7aaecc] text-sm leading-relaxed mb-4">{service.shortDescription}</p>
+                <p className="text-[#B89060] text-sm leading-relaxed mb-4">{service.shortDescription}</p>
                 <Link
                   href={`/services/${service.slug}`}
-                  className="inline-flex items-center gap-1.5 text-[#4a90c4] text-sm font-medium group-hover:text-[#6ab4e8] transition-colors duration-200"
+                  className="inline-flex items-center gap-1.5 text-[#D4860A] text-sm font-medium group-hover:text-[#F0A830] transition-colors duration-200"
                 >
                   Learn more <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
                 </Link>

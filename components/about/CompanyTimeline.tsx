@@ -14,10 +14,10 @@ export function CompanyTimeline() {
   return (
     <section className="py-16">
       <h2 className="text-3xl font-bold font-heading text-white mb-12 text-center">
-        Our <span className="text-[#2a9fd4]">Journey</span>
+        Our <span className="text-[#D4860A]">Journey</span>
       </h2>
       <div className="relative max-w-2xl mx-auto">
-        <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-[#2a7fd4] via-[#1e3a5f] to-transparent" />
+        <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-[#D4860A] via-[#5C3D28] to-transparent" />
         {events.map((e, i) => (
           <motion.div
             key={e.year}
@@ -27,12 +27,12 @@ export function CompanyTimeline() {
             viewport={{ once: true }}
             className="relative pl-16 pb-10 last:pb-0"
           >
-            <div className="absolute left-0 top-1 w-12 h-12 rounded-full bg-[#0d1f3c] border-2 border-[#2a7fd4] flex items-center justify-center">
-              <span className="text-[9px] font-bold text-[#6ab4e8] tracking-wide">{e.year}</span>
+            <div className="absolute left-0 top-1 w-12 h-12 rounded-full bg-[#3A2517] border-2 border-[#D4860A] flex items-center justify-center">
+              <span className="text-[9px] font-bold text-[#F0A830] tracking-wide">{e.year}</span>
             </div>
-            <div className="bg-[#0d1f3c] border border-[#1e3a5f] rounded-xl p-5 hover:border-[#2a7fd4] transition-colors duration-300">
+            <div className="bg-[#3A2517] border border-[#5C3D28] rounded-xl p-5 hover:border-[#D4860A] transition-colors duration-300">
               <h3 className="font-semibold font-heading text-white mb-1.5">{e.title}</h3>
-              <p className="text-[#7aaecc] text-sm leading-relaxed">{e.description}</p>
+              <p className="text-[#B89060] text-sm leading-relaxed">{e.description}</p>
             </div>
           </motion.div>
         ))}

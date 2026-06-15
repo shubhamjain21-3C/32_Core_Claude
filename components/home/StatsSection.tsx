@@ -31,7 +31,7 @@ function Counter({ target, suffix }: { target: number; suffix: string }) {
 
 export function StatsSection() {
   return (
-    <section className="section-padding bg-gradient-to-b from-[#0d2248] to-[#071224]">
+    <section className="section-padding bg-gradient-to-b from-[#2C1F14] to-[#1e0f05]">
       <div className="container-max">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {STATS.map((stat, i) => (
@@ -43,10 +43,10 @@ export function StatsSection() {
               viewport={{ once: true }}
               className="text-center"
             >
-              <div className="text-4xl lg:text-5xl font-bold font-heading text-[#2a9fd4] mb-2">
+              <div className="text-4xl lg:text-5xl font-bold font-heading text-[#D4860A] mb-2">
                 <Counter target={stat.value} suffix={stat.suffix} />
               </div>
-              <p className="text-[#7aaecc] text-sm tracking-wide">{stat.label}</p>
+              <p className="text-[#B89060] text-sm tracking-wide">{stat.label}</p>
             </motion.div>
           ))}
         </div>

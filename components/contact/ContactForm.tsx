@@ -17,7 +17,7 @@ const schema = z.object({
 })
 type FormData = z.infer<typeof schema>
 
-const inputClass = 'w-full bg-[#071224] border border-[#1e3a5f] text-[#c8dff0] placeholder-[#4a90c4]/60 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#2a7fd4] transition-colors'
+const inputClass = 'w-full bg-[#1e0f05] border border-[#5C3D28] text-[#FDE8B0] placeholder-[#D4860A]/60 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#D4860A] transition-colors'
 
 export function ContactForm() {
   const [sending, setSending] = useState(false)
@@ -44,28 +44,28 @@ export function ContactForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Full Name *</label>
+          <label className="block text-[#B89060] text-xs mb-1.5 tracking-wide">Full Name *</label>
           <input {...register('name')} placeholder="Your full name" className={inputClass} />
           {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
         </div>
         <div>
-          <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Company</label>
+          <label className="block text-[#B89060] text-xs mb-1.5 tracking-wide">Company</label>
           <input {...register('company')} placeholder="Your company (optional)" className={inputClass} />
         </div>
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Email Address *</label>
+          <label className="block text-[#B89060] text-xs mb-1.5 tracking-wide">Email Address *</label>
           <input {...register('email')} type="email" placeholder="your@email.com" className={inputClass} />
           {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
         </div>
         <div>
-          <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Phone Number</label>
+          <label className="block text-[#B89060] text-xs mb-1.5 tracking-wide">Phone Number</label>
           <input {...register('phone')} type="tel" placeholder="+44 (0) 000 000 0000" className={inputClass} />
         </div>
       </div>
       <div>
-        <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Service of Interest *</label>
+        <label className="block text-[#B89060] text-xs mb-1.5 tracking-wide">Service of Interest *</label>
         <select {...register('service')} className={inputClass}>
           <option value="">Select a service…</option>
           {SERVICES_LIST.map(s => <option key={s} value={s}>{s}</option>)}
@@ -74,7 +74,7 @@ export function ContactForm() {
         {errors.service && <p className="text-red-400 text-xs mt-1">{errors.service.message}</p>}
       </div>
       <div>
-        <label className="block text-[#7aaecc] text-xs mb-1.5 tracking-wide">Message *</label>
+        <label className="block text-[#B89060] text-xs mb-1.5 tracking-wide">Message *</label>
         <textarea {...register('message')} rows={5} placeholder="Tell us about your property or enquiry…" className={inputClass + ' resize-none'} />
         {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message.message}</p>}
       </div>
