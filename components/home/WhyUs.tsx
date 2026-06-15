@@ -38,7 +38,7 @@ const reasons = [
 
 export function WhyUs() {
   return (
-    <section className="section-padding bg-[#0a1c35]">
+    <section className="section-padding bg-[#2C1F14]">
       <div className="container-max">
         <SectionHeading
           label="Why 3C Core"
@@ -54,14 +54,14 @@ export function WhyUs() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               viewport={{ once: true }}
-              className="flex gap-4 p-6 bg-[#0d1f3c] border-l-2 border-[#2a7fd4] rounded-r-xl rounded-l-sm border border-[#1e3a5f] border-l-[#2a7fd4]"
+              className="flex gap-4 p-6 bg-[#3A2517] border-l-2 border-[#D4860A] rounded-r-xl rounded-l-sm border border-[#5C3D28] border-l-[#D4860A]"
             >
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#1a5fa8]/20 flex items-center justify-center">
-                <Icon size={18} className="text-[#6ab4e8]" />
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#D4860A]/20 flex items-center justify-center">
+                <Icon size={18} className="text-[#F0A830]" />
               </div>
               <div>
                 <h3 className="font-semibold text-white mb-1.5 font-heading">{title}</h3>
-                <p className="text-[#7aaecc] text-sm leading-relaxed">{body}</p>
+                <p className="text-[#B89060] text-sm leading-relaxed">{body}</p>
               </div>
             </motion.div>
           ))}

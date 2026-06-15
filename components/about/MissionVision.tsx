@@ -31,13 +31,13 @@ export function MissionVision() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: i * 0.1 }}
             viewport={{ once: true }}
-            className="bg-[#0d1f3c] border-l-2 border-[#2a7fd4] border border-[#1e3a5f] border-l-[#2a7fd4] rounded-r-xl rounded-l-sm p-6"
+            className="bg-[#3A2517] border-l-2 border-[#D4860A] border border-[#5C3D28] border-l-[#D4860A] rounded-r-xl rounded-l-sm p-6"
           >
-            <div className="w-11 h-11 rounded-lg bg-[#1a5fa8]/20 border border-[#2a7fd4]/30 flex items-center justify-center mb-4">
-              <Icon size={20} className="text-[#6ab4e8]" />
+            <div className="w-11 h-11 rounded-lg bg-[#D4860A]/20 border border-[#D4860A]/30 flex items-center justify-center mb-4">
+              <Icon size={20} className="text-[#F0A830]" />
             </div>
             <h3 className="font-bold font-heading text-white text-lg mb-3">{title}</h3>
-            <p className="text-[#7aaecc] text-sm leading-relaxed">{body}</p>
+            <p className="text-[#B89060] text-sm leading-relaxed">{body}</p>
           </motion.div>
         ))}
       </div>

@@ -9,8 +9,8 @@ interface CardProps {
 export function Card({ className, children, hover = true }: CardProps) {
   return (
     <div className={cn(
-      'bg-[#0d1f3c] border border-[#1e3a5f] rounded-xl p-6',
-      hover && 'hover:border-[#2a7fd4] transition-colors duration-300',
+      'bg-[#3A2517] border border-[#5C3D28] rounded-xl p-6',
+      hover && 'hover:border-[#D4860A] transition-colors duration-300',
       className
     )}>
       {children}

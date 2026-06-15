@@ -11,7 +11,7 @@ const config: Config = {
     extend: {
       colors: {
         '3c': {
-          // Amber/Gold palette (public site)
+          // Amber/Gold palette (unified across all pages)
           'gold':          '#D4860A',
           'gold-light':    '#F0A830',
           'gold-pale':     '#FDE8B0',
@@ -20,17 +20,6 @@ const config: Config = {
           'forest':        '#2D5016',
           'cream':         '#FFF8EE',
           'glass-blue':    '#4A6FA5',
-          // Navy palette (portal pages — keep for portal)
-          'navy':          '#050d1a',
-          'navy-2':        '#0a1c35',
-          'surface':       '#0d2248',
-          'card':          '#0d1f3c',
-          'blue':          '#2a7fd4',
-          'cyan':          '#00ccff',
-          'text':          '#ffffff',
-          'text-2':        '#c8dff0',
-          'text-muted':    '#7aaecc',
-          'border':        '#1e3a5f',
         },
       },
       fontFamily: {
@@ -39,8 +28,8 @@ const config: Config = {
       },
       backgroundImage: {
         'gold-grad':  'linear-gradient(160deg, #FFF8EE 0%, #FDE8B0 50%, #F5C060 100%)',
-        'hero-grad':  'linear-gradient(to bottom, #071224, #0d2248)',
-        'nav-grad':   'linear-gradient(to right,  #050d1a, #0a1c35)',
+        'hero-grad':  'linear-gradient(to bottom, #1e0f05, #2C1F14)',
+        'nav-grad':   'linear-gradient(to right,  #1e0f05, #2C1F14)',
       },
       animation: {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
