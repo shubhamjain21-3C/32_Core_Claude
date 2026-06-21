@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
-import { X, CheckCircle, Loader2, Lock, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import { X, CheckCircle, Loader2, Lock, ChevronDown, LogIn, UserPlus, UserX } from 'lucide-react'
 import type { LookupRow } from '@/types/database'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -37,6 +38,7 @@ const ROLE_LABELS: Record<string, string> = {
   landlord:         'Landlord',
   tenant:           'Tenant',
   student:          'Student',
+  others:           'Others',
 }
 
 // Reused styles — matches the existing amber/gold input look
@@ -72,6 +74,7 @@ export function ServiceBookingForm({
 
   const resolvedRole = sessionRole ?? journeyRole ?? ''
   const isLoggedIn   = !!session?.user
+  const [guestMode, setGuestMode] = useState(false)
 
   // ── Maintenance types (only when required) ──────────────────────────────────
   const [maintenanceTypes, setMaintenanceTypes] = useState<LookupRow[]>([])
@@ -107,6 +110,7 @@ export function ServiceBookingForm({
       setDone(false)
       setError('')
       setSubmitting(false)
+      setGuestMode(false)
       setMaintenanceType('')
       setSummary('')
       setServiceDate('')
@@ -221,11 +225,65 @@ export function ServiceBookingForm({
                 Close
               </button>
             </div>
+          ) : !isLoggedIn && !guestMode ? (
+            <div className="space-y-4">
+              <div className="mb-1">
+                <p className="text-[10px] tracking-[0.18em] uppercase font-semibold" style={{ color: '#D4860A' }}>
+                  Service Booking
+                </p>
+                <h3 className="font-heading font-bold text-[#2C1F14] text-xl mt-1">
+                  {heading || `Book ${svcLabel}`}
+                </h3>
+                <p className="text-xs text-[#8B3A2A] mt-2">
+                  How would you like to proceed?
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2.5">
+                <Link
+                  href={`/portal/login?return=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/services')}`}
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all"
+                  style={{ background: '#D4860A', color: 'white', border: '1.5px solid #D4860A' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#F0A830' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#D4860A' }}
+                >
+                  <LogIn size={16} />
+                  Login to Your Account
+                </Link>
+
+                <Link
+                  href="/portal/register"
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all"
+                  style={{ background: 'rgba(212,134,10,0.1)', color: '#D4860A', border: '1.5px solid rgba(212,134,10,0.35)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(212,134,10,0.2)'; e.currentTarget.style.borderColor = '#D4860A' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(212,134,10,0.1)'; e.currentTarget.style.borderColor = 'rgba(212,134,10,0.35)' }}
+                >
+                  <UserPlus size={16} />
+                  Create an Account
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setGuestMode(true)}
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all text-left"
+                  style={{ background: 'transparent', color: '#8B3A2A', border: '1.5px solid rgba(139,58,42,0.25)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,58,42,0.06)'; e.currentTarget.style.borderColor = 'rgba(139,58,42,0.4)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(139,58,42,0.25)' }}
+                >
+                  <UserX size={16} />
+                  Continue as Guest
+                </button>
+              </div>
+
+              <p className="text-[10px] text-[#8B3A2A]/60 text-center mt-2">
+                Logged-in users can track bookings in their portal dashboard.
+              </p>
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="mb-1">
                 <p className="text-[10px] tracking-[0.18em] uppercase font-semibold" style={{ color: '#D4860A' }}>
-                  Service Booking
+                  {isLoggedIn ? 'Service Booking' : 'Guest Booking'}
                 </p>
                 <h3 className="font-heading font-bold text-[#2C1F14] text-xl mt-1">
                   {heading || `Book ${svcLabel}`}
@@ -404,9 +462,12 @@ export function ServiceBookingForm({
                 {submitting ? 'Submitting…' : (submitLabel || 'Submit Booking')}
               </button>
 
-              {status === 'unauthenticated' && (
+              {!isLoggedIn && guestMode && (
                 <p className="text-[10px] text-[#8B3A2A]/70 text-center">
-                  Not logged in — your details aren&apos;t saved to a profile. Bookings still reach our team.
+                  Booking as guest — your details won&apos;t be saved to a profile.{' '}
+                  <button type="button" onClick={() => setGuestMode(false)} className="underline text-[#D4860A]">
+                    Login instead
+                  </button>
                 </p>
               )}
             </form>
