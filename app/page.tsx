@@ -45,12 +45,7 @@ export default function HomePage() {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('3c_user_role', role)
     }
-    const nextUrl = `/what-are-you-looking-for?role=${role}`
-    if (isLoggedIn) {
-      router.push(nextUrl)
-      return
-    }
-    router.push(`/portal/login?role=${role}&return=${encodeURIComponent(nextUrl)}`)
+    router.push(`/what-are-you-looking-for?role=${role}`)
   }
 
   async function handleSignOut() {
@@ -61,7 +56,7 @@ export default function HomePage() {
 
   return (
     <div
-      className="relative w-screen h-screen overflow-hidden flex flex-col"
+      className="relative w-screen min-h-screen overflow-y-auto flex flex-col"
       style={{
         backgroundImage: "url('/assets/images/homepage_3c.png')",
         backgroundSize: 'cover',
@@ -150,16 +145,16 @@ export default function HomePage() {
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 text-center overflow-y-auto py-8 -mt-10">
+      <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-4 text-center overflow-y-auto py-4">
 
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-5"
+          className="mb-3"
         >
-          <h1 className="font-heading font-bold text-white text-4xl sm:text-5xl leading-none">3C Core</h1>
-          <p className="mt-2 text-xs sm:text-sm tracking-[0.18em] uppercase font-medium" style={{ color: '#F0A830' }}>
+          <h1 className="font-heading font-bold text-white text-3xl sm:text-4xl leading-none">3C Core</h1>
+          <p className="mt-1.5 text-[10px] sm:text-xs tracking-[0.18em] uppercase font-medium" style={{ color: '#F0A830' }}>
             Connected&nbsp;|&nbsp;Consistent&nbsp;|&nbsp;Confident
           </p>
         </motion.div>
@@ -168,13 +163,13 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mb-7 max-w-xl"
+          className="mb-4 max-w-xl"
         >
-          <p className="font-heading font-bold text-white text-2xl sm:text-3xl leading-snug">
+          <p className="font-heading font-bold text-white text-xl sm:text-2xl leading-snug">
             One Skyline<br />
             Infinite Needs
           </p>
-          <p className="mt-3 font-heading font-semibold text-lg sm:text-xl" style={{ color: '#F0A830' }}>
+          <p className="mt-2 font-heading font-semibold text-base sm:text-lg" style={{ color: '#F0A830' }}>
             Property Services You Can Finally Trust
           </p>
         </motion.div>
@@ -183,7 +178,7 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="text-[11px] tracking-widest uppercase mb-5 font-medium"
+          className="text-[11px] tracking-widest uppercase mb-3 font-medium"
           style={{ color: '#F0A830' }}
         >
           Who are you?
@@ -299,7 +294,7 @@ export default function HomePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.45, delay: 0.55 + i * 0.1 }}
                   onClick={() => handleRole(role)}
-                  className="text-left px-5 py-4 rounded-xl cursor-pointer"
+                  className="text-left px-4 py-3 rounded-xl cursor-pointer"
                   style={{
                     background: 'rgba(255,255,255,0.10)',
                     border: '1.5px solid rgba(240,168,48,0.65)',
