@@ -21,7 +21,7 @@ export function ServicePageHeader() {
     const intent = sessionStorage.getItem('3c_journey_intent') ?? 'services'
 
     if (isLettingPage || intent === 'letting') {
-      setBackUrl(`/who-are-you?intent=letting`)
+      setBackUrl(`/what-are-you-looking-for?role=${role}`)
       setBackLabel('Back')
     } else if (role) {
       setBackUrl(`/services?role=${role}&intent=${intent}`)

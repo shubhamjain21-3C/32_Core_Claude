@@ -279,9 +279,8 @@ export function RegisterForm() {
       if (signInRes?.error) {
         setStep2Error('Account created but sign-in failed. Please go to the login page.')
       } else {
-        // Land on the services page so the new customer picks a service first.
         const role = form.portalRole || 'property_manager'
-        router.push(`/services?role=${role}`)
+        router.push(`/what-are-you-looking-for?role=${role}`)
         router.refresh()
       }
     } catch {
