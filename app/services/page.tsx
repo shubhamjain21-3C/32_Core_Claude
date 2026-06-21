@@ -7,13 +7,14 @@ import Link from 'next/link'
 import { ArrowLeft, User, LogOut, LayoutDashboard } from 'lucide-react'
 import { ComingSoonWidget } from '@/components/ui/ComingSoonWidget'
 
-type Role = 'property_manager' | 'landlord' | 'tenant' | 'student'
+type Role = 'property_manager' | 'landlord' | 'tenant' | 'student' | 'others'
 
 const SERVICE_MATRIX: Record<string, string[]> = {
   property_manager: ['inventory', 'maintenance', 'midterm', 'dispute', 'deposit'],
   landlord:         ['inventory', 'maintenance', 'midterm', 'dispute', 'deposit'],
   tenant:           ['inventory', 'maintenance', 'midterm', 'dispute', 'letting'],
   student:          ['inventory', 'maintenance', 'midterm', 'dispute', 'letting'],
+  others:           ['inventory', 'maintenance', 'midterm', 'dispute', 'deposit', 'letting'],
 }
 
 const ALL_SERVICES = [
@@ -30,6 +31,7 @@ const ROLE_GREETINGS: Record<string, string> = {
   landlord:         'Welcome, Landlord',
   tenant:           'Welcome, Tenant',
   student:          'Welcome, Student',
+  others:           'Welcome',
 }
 
 const AI_STATS = [
@@ -91,7 +93,7 @@ function ServicesContent() {
 
       {/* Top bar: back + user */}
       <div className="relative z-20 pt-5 px-5 flex items-center justify-between">
-        <Link href={`/who-are-you?intent=${intent}`} className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
+        <Link href={`/what-are-you-looking-for?role=${role}`} className="inline-flex items-center gap-1.5 text-white/70 hover:text-[#F0A830] transition-colors text-sm">
           <ArrowLeft size={15} />
           Change Selection
         </Link>

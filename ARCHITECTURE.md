@@ -1,6 +1,6 @@
 # Architecture — 3C Core Website
 
-Last updated: 2026-06-08
+Last updated: 2026-06-21
 
 ---
 
@@ -43,10 +43,12 @@ External integrations:
 ```
 app/
 ├── layout.tsx                     # Root layout (fonts + global providers)
-├── page.tsx                       # / Home
+├── page.tsx                       # / "Who are you?" (role selector — landing)
+├── what-are-you-looking-for/page.tsx  # /what-are-you-looking-for (intent selector)
+├── download-app/page.tsx          # /download-app (App Store / Google Play toggle)
 ├── about/page.tsx                 # /about
 ├── contact/page.tsx               # /contact
-├── who-are-you/page.tsx           # /who-are-you (journey selector)
+├── who-are-you/page.tsx           # /who-are-you (legacy — dead code, kept for reuse)
 │
 ├── services/
 │   ├── page.tsx                   # /services            (service list per role)
@@ -153,7 +155,7 @@ RegisterForm Step 2
         ├── createUser() in lib/store  (in-memory, this Vercel instance only)
         ├── writeCustomerProfile()     (UPDATE public.users with full profile)
         ├── signIn('customer-login', { email, password })  (NextAuth credentials)
-        └── router.push(`/services?role=${portalRole}`)
+        └── router.push(`/what-are-you-looking-for?role=${portalRole}`)
 ```
 
 ### Customer login
@@ -172,7 +174,7 @@ LoginForm (CustomerLoginForm)
   │     │          to the user, every subsequent login uses bcrypt
   │     └── fallback: in-memory store (seeded demo accounts only)
   │
-  └── on success → /services?role={portalRole}   (returnUrl honoured if set)
+  └── on success → /what-are-you-looking-for?role={portalRole}   (returnUrl honoured if set)
 ```
 
 ### Customer forgot password
@@ -239,7 +241,7 @@ Admin-only:
 | Property lettings | Supabase `property_lettings` + sample fallback | Used by `/services/letting-services` |
 | Static content (services, portfolio, testimonials) | `data/*.ts` files | Compiled at build time |
 
-### Supabase schema (migrations 020 + 021)
+### Supabase schema (migrations 020–023)
 
 Reference (lookup) tables — every dropdown reads from one of these:
 
@@ -283,14 +285,14 @@ RLS: every core table has Row Level Security enabled. The service-role key (used
 
 ## 5. Service navigation flow
 
-Driven by the **journey selector** at `/who-are-you` which writes the chosen role into `sessionStorage['3c_user_role']`. The role is also persisted to NextAuth's JWT after login.
+Driven by the **role selector** at `/` which writes the chosen role into `sessionStorage['3c_user_role']`. The role is also persisted to NextAuth's JWT after login.
 
 ```
-/                                  → "Get Started"
+/                                  → "Who are you?" pick role (PM/Tenant/Student/Others)
   ↓
-/who-are-you                       → pick role (PM/Tenant/Student)
+/what-are-you-looking-for?role=    → "What are you looking for?" (Services / Letting)
   ↓
-/services?role=<role>              → role-filtered service list
+/services?role=<role>&intent=      → role-filtered service list
   ↓ click a service
   │
   ├── inventory  → /services/inventory       → DIY chooser
@@ -378,7 +380,7 @@ Required for the auth flows to work end-to-end:
 3. **Authentication → Emails → SMTP Settings** — custom SMTP via Resend (`smtp.resend.com:465`, user `resend`, password = Resend API key, sender from a verified domain). Required to edit email templates.
 4. **Authentication → Email Templates → Magic Link or OTP** AND **Confirm signup** — both updated to use `{{ .Token }}` so users receive a 6-digit code rather than a magic link.
 5. **Storage** — three buckets created by migration 020 (`inventory-media`, `inventory-reports`, `portal-media`).
-6. **SQL** — migrations `020_finalised_schema_with_lookups.sql` and `021_service_bookings_and_maintenance_types.sql` run.
+6. **SQL** — migrations `020_finalised_schema_with_lookups.sql`, `021_service_bookings_and_maintenance_types.sql`, `022_persistent_user_profile_and_password.sql`, and `023_add_others_portal_role.sql` run.
 
 ---
 
@@ -386,14 +388,22 @@ Required for the auth flows to work end-to-end:
 
 ```
 app/layout.tsx
-  └── Navbar / Footer (components/layout)
+  └── Navbar / Footer (components/layout — legacy, not rendered in active flow)
 
-Home (app/page.tsx)
-  ├── HeroSection
-  ├── ServicesPreview → ServiceCard[]
-  ├── WhyUs
-  ├── StatsSection
-  ├── Testimonials
+Landing (app/page.tsx)
+  └── Role selector ("Who are you?") with session-aware signed-in panel
+      ├── ComingSoonWidget (AI chatbot toggle)
+      └── → /what-are-you-looking-for?role=...
+
+Intent Selector (app/what-are-you-looking-for/page.tsx)
+  └── Intent cards (Services / Letting) → /services?role=...&intent=...
+
+Download App (app/download-app/page.tsx)
+  └── App Store / Google Play toggle with placeholder links
+
+Legacy home components (dead code — kept for reuse)
+  ├── HeroSection, ServicesPreview, ServiceCard
+  ├── WhyUs, StatsSection, Testimonials
   └── CTABanner
 
 Portal pages
@@ -425,3 +435,5 @@ DIY Inventory
 - **AI analysis** — flag-gated stub. Adds `ANTHROPIC_API_KEY` and flips `NEXT_PUBLIC_AI_ANALYSIS_ENABLED=true` to enable live Claude calls.
 - **Stripe** — routes scaffolded but no live keys.
 - **Chat scaffolding** — `chat_conversations` / `chat_messages` tables exist; widget UI shows "Coming Soon".
+- **Download App page** — `/download-app` page with iOS/Android toggle exists; App Store and Google Play URLs are placeholders (`#`) until the app is published.
+- **Portal roles** — `ref_portal_roles` now includes: property_manager (1), landlord (2), tenant (3), student (4), admin (5), others (6). The "Others" role sees all services.

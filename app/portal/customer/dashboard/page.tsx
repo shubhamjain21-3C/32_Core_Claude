@@ -36,7 +36,7 @@ export default async function CustomerDashboard() {
           <p className="text-[#8B3A2A] text-sm mt-1">Here&apos;s your property portfolio overview.</p>
         </div>
         <Link
-          href={`/services?role=${portalRole}`}
+          href={`/what-are-you-looking-for?role=${portalRole}`}
           className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
           style={{
             background: 'rgba(212,134,10,0.1)',

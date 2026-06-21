@@ -61,7 +61,7 @@ export function ServiceBookingForm({
   const { data: session, status } = useSession()
   const sessionRole = session?.user?.portalRole
 
-  // Try to read the journey selection (set by the who-are-you flow) when
+  // Try to read the journey selection (set by the role-selection flow) when
   // there's no logged-in session — keeps the auto-fill experience consistent.
   const [journeyRole, setJourneyRole] = useState<string | null>(null)
   useEffect(() => {

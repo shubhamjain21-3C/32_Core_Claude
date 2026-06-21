@@ -57,7 +57,7 @@ function CustomerLoginForm({ returnUrl }: { returnUrl?: string }) {
     }
     const session = await getSession()
     const portalRole = session?.user?.portalRole ?? 'property_manager'
-    router.push(`/services?role=${portalRole}`)
+    router.push(`/what-are-you-looking-for?role=${portalRole}`)
     router.refresh()
   }
 

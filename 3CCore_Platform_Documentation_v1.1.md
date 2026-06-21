@@ -4,7 +4,7 @@
 # Platform Documentation
 Business Model · Workflows · Users · Data · Technology · Roadmap · AI
 
-**Version 1.1 · June 2026**
+**Version 1.2 · June 2026**
 3ccore.com · contactus@3ccore.com
 **CONFIDENTIAL**
 
@@ -52,15 +52,15 @@ The core commercial idea is to sell this platform to property managers so they c
 
 ## 2. User Journey & Workflow Diagram
 
-Every visitor is guided through a simple journey. The website first asks what they want and who they are, then shows only the services relevant to them, and routes each service to the right action — a report tool, a booking form, or a property listing.
+Every visitor is guided through a simple journey. The website first asks who they are and then what they want, then shows only the services relevant to them, and routes each service to the right action — a report tool, a booking form, or a property listing.
 
 ### 2.1 The Journey in Words
 
 | Step | What Happens |
 |---|---|
 | 1. Arrive | Visitor lands on 3ccore.com. |
-| 2. What are you looking for? | They choose Services or Letting. |
-| 3. Who are you? | Services path: Property Manager/Landlord, Tenant, or Student. Letting path: Tenant or Student only. |
+| 2. Who are you? | They select their role: Property Manager/Landlord, Tenant, Student, or Others. |
+| 3. What are you looking for? | They choose Services or Letting. |
 | 4. Services page | Only the services allowed for that role are shown. |
 | 5. Select a service | Routing depends on the service (see below). |
 | 6a. Inventory | Choose "Do It Yourself" (AI report tool) or "Book an Agent" (booking form). |
@@ -70,6 +70,7 @@ Every visitor is guided through a simple journey. The website first asks what th
 | 7. Booking form | Role, name, and service type are auto-filled. User adds summary, date, and call-back time. |
 | 8. Submit | Saved to the database and emailed to the admin (contactus@3ccore.com). |
 | 9. Portal | Logged-in users track reports, documents, media, and bookings in their dashboard. |
+| 10. Download App | `/download-app` page with App Store / Google Play toggle (links pending). |
 
 ---
 
@@ -82,6 +83,7 @@ Every visitor is guided through a simple journey. The website first asks what th
 | Property Manager / Landlord | Manages one or more properties; the primary paying customer. | All services including Deposit Negotiation; no Letting. |
 | Tenant | Rents a property managed or let through 3C Core. | All services except Deposit Negotiation; can use Letting. |
 | Student | A tenant seeking student accommodation. | Same as Tenant; Letting aligned to academic year. |
+| Others | General visitors or enquirers not fitting the above roles. | All services — full access to both Services and Letting. |
 
 Roles are stored as a lookup table (ref_portal_roles), so new roles can be added in future without changing the code.
 
@@ -91,7 +93,7 @@ A "lookup" is a small editable list of options. Instead of fixing options inside
 
 | Lookup Table | Options Held |
 |---|---|
-| ref_portal_roles | Property Manager, Landlord, Tenant, Student |
+| ref_portal_roles | Property Manager, Landlord, Tenant, Student, Admin, Others |
 | ref_property_types | Residential, HMO, Commercial, Student, Holiday Let |
 | ref_property_status | Occupied, Vacant, Under Management, For Letting |
 | ref_tenancy_status | Pending, Active, Ended |
@@ -159,9 +161,9 @@ The following reflects the active development branch (dev), which is ahead of th
 | Area | Status | Note |
 |---|---|---|
 | Website pages & design | **Live** | Deployed via Vercel |
-| User journey & auto-filled booking | **Built** | Service navigation reworked into auto-filled booking flow |
+| User journey & auto-filled booking | **Built** | Flow reversed: Who are you? → What are you looking for? → Services. "Others" role added. |
 | Role-based routing & portal branding | **Built** | Cross-role blocking + amber/gold portal sidebar |
-| Account registration | **Built** | Company field; duplicate-email blocking; redirect to /services |
+| Account registration | **Built** | Company field; duplicate-email blocking; redirect to /what-are-you-looking-for |
 | Email OTP verification | **Built & working** | Customer OTP send/verify implemented |
 | Admin OTP login | **Built** | Separate admin login via OTP |
 | Forgot-password (email OTP) | **Built** | Reset flow; persistent duplicate-email check |
@@ -298,7 +300,7 @@ The entire website and portal use a single, consistent Amber/Gold colour palette
 
 | Context | Treatment |
 |---|---|
-| Full-screen pages (landing, who-are-you, services) | Background image with warm dark overlay `rgba(30,15,5,0.55)`, white text, gold accents, glass-morphism cards |
+| Full-screen pages (landing, what-are-you-looking-for, services, download-app) | Background image with warm dark overlay `rgba(30,15,5,0.55)`, white text, gold accents, glass-morphism cards |
 | Content pages (about, contact, legal) | Gold gradient background `linear-gradient(160deg, #FFF8EE, #FDE8B0, #F5C060)`, charcoal text, white/translucent cards |
 | Portal pages (dashboard, properties, account) | Cream `#FFF8EE` base, white cards with gold borders, charcoal text |
 | Portal login/selection | Gold gradient background, white translucent cards |
