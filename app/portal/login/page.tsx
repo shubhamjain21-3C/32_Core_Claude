@@ -1,24 +1,24 @@
 'use client'
 import Link from 'next/link'
-import { ArrowLeft, Home, Key, ClipboardList, GraduationCap, User } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { LoginForm } from '@/components/portal/LoginForm'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import type { LucideIcon } from 'lucide-react'
 
-const ROLE_LABELS: Record<string, { Icon: LucideIcon; title: string; desc: string }> = {
-  property_manager: { Icon: ClipboardList, title: 'Property Manager / Landlord Login', desc: 'Manage portfolios, properties & client accounts' },
-  landlord:         { Icon: Home,          title: 'Landlord Login',                    desc: 'Access your property dashboard & reports' },
-  tenant:           { Icon: Key,           title: 'Tenant Login',                      desc: 'View your tenancy documents & inspections' },
-  student:          { Icon: GraduationCap, title: 'Student Login',                     desc: 'Find accommodation & manage your tenancy' },
-  default:          { Icon: User,          title: 'Client Portal Login',               desc: 'Sign in to access your 3C Core account' },
+const ROLE_LABELS: Record<string, { title: string; desc: string }> = {
+  property_manager: { title: 'Property Manager / Landlord Login', desc: 'Manage portfolios, properties & client accounts' },
+  landlord:         { title: 'Landlord Login',                    desc: 'Access your property dashboard & reports' },
+  tenant:           { title: 'Tenant Login',                      desc: 'View your tenancy documents & inspections' },
+  student:          { title: 'Student Login',                     desc: 'Find accommodation & manage your tenancy' },
+  others:           { title: 'Client Login',                      desc: 'Sign in to browse all available services' },
+  default:          { title: 'Client Portal Login',               desc: 'Sign in to access your 3C Core account' },
 }
 
 function LoginContent() {
   const params = useSearchParams()
   const role = params.get('role') ?? 'default'
   const returnUrl = params.get('return') ?? ''
-  const { Icon, title, desc } = ROLE_LABELS[role] ?? ROLE_LABELS.default
+  const { title, desc } = ROLE_LABELS[role] ?? ROLE_LABELS.default
 
   return (
     <div className="w-full max-w-md">
@@ -38,9 +38,6 @@ function LoginContent() {
             </p>
           </Link>
 
-          <div className="flex justify-center mb-2">
-            <Icon size={30} className="text-[#D4860A]" />
-          </div>
           <h1 className="font-heading font-bold text-[#2C1F14] text-xl mb-1">{title}</h1>
           <p className="text-[#8B3A2A] text-sm">{desc}</p>
         </div>
@@ -57,6 +54,11 @@ function LoginContent() {
           >
             Create a Free Account
           </Link>
+          <p className="text-[11px] text-[#8B3A2A]/70">
+            <Link href="/portal/admin-login" className="hover:text-[#D4860A] transition-colors">
+              Login for Admin access
+            </Link>
+          </p>
           <div className="pt-2" style={{ borderTop: '1px solid rgba(212,134,10,0.2)' }}>
             <Link href="/portal" className="text-xs text-[#8B3A2A] hover:text-[#D4860A] transition-colors">
               ← Back to portal selection

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft, ShieldCheck } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { LoginForm } from '@/components/portal/LoginForm'
 
 export const metadata: Metadata = {
@@ -53,10 +53,7 @@ export default function AdminLoginPage() {
                 </p>
               </Link>
 
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <ShieldCheck size={22} className="text-[#8B3A2A]" />
-                <h1 className="font-heading font-bold text-[#2C1F14] text-xl">Admin Portal</h1>
-              </div>
+              <h1 className="font-heading font-bold text-[#2C1F14] text-xl mb-2">Admin Portal</h1>
               <p className="text-[#8B3A2A] text-sm">3C Core staff access only</p>
 
               <div

@@ -1,49 +1,43 @@
 'use client'
 import Link from 'next/link'
-import { ArrowLeft, Home, Key, ClipboardList, GraduationCap, ShieldCheck } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 interface RoleCard {
-  Icon: LucideIcon
   title: string
   subtitle: string
   href: string
   borderColor: string
-  iconColor: string
+  titleColor: string
 }
 
 const ROLES: RoleCard[] = [
   {
-    Icon: ClipboardList,
     title: 'Property Manager / Landlord',
     subtitle: 'Manage properties, inventories, compliance & tenancies',
     href: '/portal/login?role=property_manager',
     borderColor: '#D4860A',
-    iconColor: '#D4860A',
+    titleColor: '#D4860A',
   },
   {
-    Icon: Key,
     title: 'Tenant',
     subtitle: 'View your tenancy, inspection reports & documents',
     href: '/portal/login?role=tenant',
     borderColor: '#2D5016',
-    iconColor: '#2D5016',
+    titleColor: '#2D5016',
   },
   {
-    Icon: GraduationCap,
     title: 'Student',
     subtitle: 'Find accommodation & manage your student tenancy',
     href: '/portal/login?role=student',
     borderColor: '#4A6FA5',
-    iconColor: '#4A6FA5',
+    titleColor: '#4A6FA5',
   },
   {
-    Icon: ShieldCheck,
-    title: 'Admin',
-    subtitle: '3C Core staff — full system access',
-    href: '/portal/admin-login',
+    title: 'Others',
+    subtitle: 'Browse all available property services',
+    href: '/portal/login?role=others',
     borderColor: '#8B3A2A',
-    iconColor: '#8B3A2A',
+    titleColor: '#8B3A2A',
   },
 ]
 
@@ -78,7 +72,7 @@ export default function PortalSelectionPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-5 w-full max-w-2xl">
-          {ROLES.map(({ Icon, title, subtitle, href, borderColor, iconColor }) => (
+          {ROLES.map(({ title, subtitle, href, borderColor, titleColor }) => (
             <Link
               key={title}
               href={href}
@@ -99,19 +93,16 @@ export default function PortalSelectionPage() {
                 el.style.boxShadow = '0 2px 12px rgba(44,31,20,0.08)'
               }}
             >
-              <div className="mb-4 p-3 rounded-full" style={{ background: `${borderColor}18` }}>
-                <Icon size={28} style={{ color: iconColor }} />
-              </div>
               <h2
                 className="font-heading font-bold text-lg mb-2"
-                style={{ color: iconColor }}
+                style={{ color: titleColor }}
               >
                 {title}
               </h2>
               <p className="text-sm text-[#8B3A2A] leading-relaxed">{subtitle}</p>
               <span
                 className="mt-4 text-xs font-semibold tracking-wide uppercase"
-                style={{ color: iconColor }}
+                style={{ color: titleColor }}
               >
                 Sign In →
               </span>
@@ -123,6 +114,11 @@ export default function PortalSelectionPage() {
           New to 3C Core?{' '}
           <Link href="/portal/register" className="font-semibold underline" style={{ color: '#D4860A' }}>
             Create a free account
+          </Link>
+        </p>
+        <p className="mt-2 text-xs text-[#8B3A2A]/70">
+          <Link href="/portal/admin-login" className="hover:text-[#D4860A] transition-colors">
+            Login for Admin access
           </Link>
         </p>
       </main>
