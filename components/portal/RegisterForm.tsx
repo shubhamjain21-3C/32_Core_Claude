@@ -3,10 +3,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import {
-  Eye, EyeOff, ClipboardList, Key, GraduationCap, Building2,
+  Eye, EyeOff,
   Mail, Smartphone, ArrowLeft, Loader2,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import type { LookupRow } from '@/types/database'
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
@@ -27,17 +26,11 @@ const errBoxCls = [
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const ROLE_ICONS: Record<string, LucideIcon> = {
-  property_manager: ClipboardList,
-  landlord:         Building2,
-  tenant:           Key,
-  student:          GraduationCap,
-}
-
 const FALLBACK_ROLES: LookupRow[] = [
   { id: 1, code: 'property_manager', label: 'Property Manager / Landlord', description: null, sort_order: 1, is_active: true, flags: {}, created_at: '' },
   { id: 3, code: 'tenant',           label: 'Tenant',                      description: null, sort_order: 3, is_active: true, flags: {}, created_at: '' },
   { id: 4, code: 'student',          label: 'Student',                     description: null, sort_order: 4, is_active: true, flags: {}, created_at: '' },
+  { id: 6, code: 'others',           label: 'Others',                      description: null, sort_order: 6, is_active: true, flags: {}, created_at: '' },
 ]
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -511,7 +504,6 @@ export function RegisterForm() {
         <label className={labelCls}>I am a *</label>
         <div className="flex flex-col gap-2">
           {portalRoles.map(({ code, label }) => {
-            const Icon = ROLE_ICONS[code] ?? ClipboardList
             const selected = form.portalRole === code
             return (
               <button
@@ -525,7 +517,6 @@ export function RegisterForm() {
                     : 'bg-white/70 border-[rgba(212,134,10,0.25)] text-[#8B3A2A] hover:border-[#D4860A]',
                 ].join(' ')}
               >
-                <Icon size={16} className={selected ? 'text-[#D4860A]' : 'text-[#8B3A2A]'} />
                 {label}
               </button>
             )
