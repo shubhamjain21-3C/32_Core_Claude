@@ -214,7 +214,7 @@ The platform is built with modern, widely-trusted technology. Each item below is
 | Payments | Stripe |
 | Email | Resend (from contactus@3ccore.com) |
 | AI | Anthropic (Claude API) |
-| Code repository | GitHub — shubhamjain21-3C/32_Core_Claude |
+| Code repository | GitHub — shubhamjain21-3C/3C_Core_Main |
 
 ---
 
