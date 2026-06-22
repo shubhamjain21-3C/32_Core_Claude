@@ -1,10 +1,123 @@
 # Changes Summary
 
-Last updated: 2026-06-08 (Batch 6)
+Last updated: 2026-06-21 (Batch 9)
 
 This is a chronological log of substantial changes shipped on the website. Each batch corresponds to a merge to `main`. The most recent batch is at the top.
 
 For the current overall architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+---
+
+# Batch 9 — Journey flow reversal, Others role, download-app, UX polish, icon removal
+
+Four related changes shipped together on 2026-06-21:
+
+### 1. Reversed user journey flow
+
+The landing page at `/` is now a "Who are you?" role selector. Choosing a role goes to `/what-are-you-looking-for` (intent selector), then to `/services` (filtered service list). Previously the flow started at `/who-are-you` — that page is now dead code kept for reference.
+
+`sessionStorage['3c_user_role']` and `sessionStorage['3c_journey_intent']` carry state through the flow.
+
+### 2. Others role + portal restructure
+
+- **Migration 023** adds `others` (id 6, sort_order 6) to `ref_portal_roles`.
+- Portal selection page (`/portal`) now shows 4 cards: **PM/Landlord**, **Tenant**, **Student**, **Others** — each with its own accent colour.
+- Admin is no longer a card. A small "Login for Admin access" link sits below the "Create a free account" line on both the portal selection and login pages.
+- RegisterForm role selector includes Others (via API fetch with admin filtered out, or fallback constant).
+- All Lucide icons removed from portal pages (selection cards, login header, register role buttons, both admin login pages). Only the `ArrowLeft` back-navigation icon remains.
+
+### 3. Download App page
+
+New `/download-app` page with iOS/Android toggle. App Store and Google Play URLs are placeholders (`#`) until the mobile app is published.
+
+### 4. UX fixes
+
+- Guest checkout: unauthenticated users on service booking pages see a Login / Register / Continue as Guest panel before the booking form.
+- `ComingSoonWidget` shrunk from a full chat panel to a small circular toggle.
+- Restored original "Connected | Consistent | Confident" tagline on landing and intent pages.
+- Fixed page overflow issues on landing and intent pages.
+
+### Files
+
+Added
+- `app/download-app/page.tsx`
+- `supabase/migrations/023_add_others_portal_role.sql`
+
+Updated
+- `app/page.tsx` — role selector landing, tagline, overflow fix
+- `app/what-are-you-looking-for/page.tsx` — intent selector, tagline, overflow fix
+- `app/services/page.tsx` — receives role from sessionStorage
+- `app/portal/page.tsx` — 4 cards + admin link
+- `app/portal/login/page.tsx` — Others label + admin link, icons removed
+- `app/portal/admin-login/page.tsx` — icons removed
+- `app/portal/admin/login/page.tsx` — icons removed
+- `components/portal/RegisterForm.tsx` — Others in fallback roles, icons removed
+- `components/portal/LoginForm.tsx` — post-login redirects to `/what-are-you-looking-for`
+- `components/booking/ServiceBookingForm.tsx` — guest checkout panel
+- `components/layout/ServicePageHeader.tsx` — updated for new flow
+- `components/ui/ComingSoonWidget.tsx` — compact toggle
+- `app/portal/customer/dashboard/page.tsx`
+- `ARCHITECTURE.md`
+
+### Required after deploy
+
+Run **migration 023** in the Supabase SQL Editor (adds `others` to `ref_portal_roles`).
+
+---
+
+# Batch 8 — Unified Amber/Gold palette
+
+Shipped 2026-06-14. Migrated the entire front-end from the original navy/blue colour scheme (`#0f1c3f`, `#1a2744`, Tailwind `blue-500`/`blue-600`) to the unified Amber/Gold palette:
+
+| Swatch | Hex | Usage |
+|---|---|---|
+| Deep Amber | `#D4860A` | Primary accent, CTAs, links |
+| Bright Amber | `#F0A830` | Hover states, highlights |
+| Cream | `#FDE8B0` | Light backgrounds |
+| Warm Brown | `#8B3A2A` | Body text, subdued labels |
+| Dark Brown | `#2C1F14` | Headings, dark backgrounds |
+| Forest Green | `#2D5016` | Tenant accent |
+| Warm White | `#FFF8EE` | Page backgrounds |
+| Steel Blue | `#4A6FA5` | Student accent |
+
+### Files updated (24)
+
+- `tailwind.config.ts`, `styles/globals.css`
+- `components/layout/Navbar.tsx`, `components/layout/Footer.tsx`
+- `components/home/HeroSection.tsx`, `CTABanner.tsx`, `ServicesPreview.tsx`, `StatsSection.tsx`, `Testimonials.tsx`, `WhyUs.tsx`
+- `components/about/CompanyTimeline.tsx`, `MissionVision.tsx`, `TeamGrid.tsx`
+- `components/contact/ContactForm.tsx`
+- `components/services/ServiceCard.tsx`
+- `components/ui/Card.tsx`, `CircuitDecor.tsx`, `SectionHeading.tsx`
+- `components/ChatbotToggle.tsx`
+- `app/portfolio/page.tsx`, `app/portfolio/[slug]/page.tsx`
+- `app/services/[slug]/page.tsx`
+- `lib/email.ts` (email template colours)
+
+---
+
+# Batch 7 — Portal customer pages read from Supabase + registration hardening
+
+Five fixes shipped 2026-06-09:
+
+1. **Customer portal pages now read profile from Supabase.** Dashboard and Account pages fetch the user's profile from `public.users` instead of relying on the in-memory store. This means profile data (name, phone, company) survives cold starts.
+
+2. **`verifyOtp` tries multiple OTP types.** Registration and forgot-password now try `email`, `magiclink`, and `signup` types as fallbacks when verifying a Supabase OTP code — avoids failures when Supabase categorises the OTP differently.
+
+3. **Registration surfaces real errors.** The `/api/auth/register` route now returns the actual Supabase `verifyOtp` error message and Zod field-level validation messages to the client, making debugging registration failures much easier.
+
+4. **`landlord` accepted as a valid portal role.** The register schema and `writeCustomerProfile` now accept `landlord` in addition to `property_manager`, resolving a Zod validation error when users who chose "Property Manager / Landlord" on the portal selection page were redirected with `role=landlord`.
+
+### Files
+
+Updated
+- `app/portal/customer/account/page.tsx`
+- `app/portal/customer/dashboard/page.tsx`
+- `app/portal/customer/layout.tsx`
+- `lib/users-db.ts`
+- `app/api/auth/register/route.ts`
+- `app/api/auth/forgot-password/reset/route.ts`
+- `types/index.ts`
 
 ---
 
@@ -198,7 +311,7 @@ Per-service routing:
 
 (One-time, in order):
 
-1. **Run migrations** in SQL Editor — `020_finalised_schema_with_lookups.sql`, then `021_service_bookings_and_maintenance_types.sql`, then `022_persistent_user_profile_and_password.sql`.
+1. **Run migrations** in SQL Editor — `020_finalised_schema_with_lookups.sql`, then `021_service_bookings_and_maintenance_types.sql`, then `022_persistent_user_profile_and_password.sql`, then `023_add_others_portal_role.sql`.
 2. **Authentication → Providers → Email** — enabled.
 3. **Authentication → URL Configuration** —
    - Site URL: `https://3ccore.com`
