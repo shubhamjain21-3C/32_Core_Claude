@@ -4,7 +4,7 @@ description: Production-ready Next.js 14 property management website for 3C Core
 type: project
 ---
 
-3C Core Ltd website built and pushed to GitHub repo https://github.com/shubhamjain21-3C/32_Core_Claude
+3C Core Ltd website built and pushed to GitHub repo https://github.com/shubhamjain21-3C/3C_Core_Main
 
 **Why:** Client's property management business website built from spec at `3CCore_Master_Prompt_v3_CompactHeader.md`
 
